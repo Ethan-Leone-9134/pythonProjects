@@ -1,0 +1,146 @@
+
+# t#,# = switch indicated characters  (t3,2)
+# r = moves first character to the end  (r)
+# r- = moves last character to the start  (r-)
+# s#,@ = moves  character(#) up the alphabet by a factor of @  (s3,5)
+# s#,-@ = moves  character(#) down the alphabet by a factor of @  (s3,-5)
+# d#,@ = duplicates character(#) @ times  (d4,1)
+# k# - s but all letters (k4)
+
+
+wordIter = input("What is the phrase? ")
+algor = input("What is the algorithm? ")
+direction = str.capitalize(input("Are you trying to encrypt(E) or decrypt(D)? "))
+
+
+original = wordIter
+
+# Format inputs for algorithm
+if direction == 'E':
+    direction = 'E'
+elif direction == 'D':
+    splitDA = algor.split(';')
+    reptInd = 1 + algor.count(';')
+    compAlg = ['']*reptInd
+    for x in range(reptInd):
+        reptItem = splitDA[(reptInd-x-1)]
+        if reptItem == "r":
+            compAlg[x] = "r-"
+        elif reptItem == "r-":
+            compAlg[x] = "r"
+        elif reptItem[0] == "t":
+            compAlg[x] = reptItem
+        elif reptItem[0] == 'd':  # INVERT D
+            comma = reptItem.find(',')
+            if reptItem[comma:comma+2] == ',-':
+                temp = reptItem.replace(',-', ',')
+            else:
+                temp = reptItem.replace(',', ',-')
+            compAlg[x] = temp
+        elif reptItem[0] == 'k':  # INVERT K
+            if reptItem[0:2] == 'k-':
+                temp = reptItem.replace('k-', 'k')
+            else:
+                temp = reptItem.replace('k', 'k-')
+            compAlg[x] = temp
+        elif reptItem[0] == "s":
+            comma = reptItem.find(',')
+            if reptItem[comma:comma+2] == ',-':
+                temp = reptItem.replace(',-', ',')
+            else:
+                temp = reptItem.replace(',', ',-')
+            compAlg[x] = temp
+    algor = ';'.join(compAlg)
+else:
+    print("Error: Invalid input")
+    exit()
+
+print(algor)
+
+# Start primary function
+total = 1 + algor.count(';')
+splitDA = algor.split(';')
+wordIter = list(wordIter)
+for y in range(total):
+    repItem = splitDA[y]
+    countChar = int(len(wordIter))
+    if repItem[0] == "r":  # Place char 1 at end
+        if repItem != "r":  # R-
+            r2 = wordIter[countChar-1]
+            r1 = ''.join(wordIter[0:countChar-1])
+            wordIter = list(r2 + r1)
+        else:  # R
+            r1 = wordIter[0]
+            r2 = ''.join(wordIter[1:countChar])
+            wordIter = list(r2 + r1)
+
+    if repItem[0] == "t":  # Switch #1 with #2
+        comp = (repItem.replace('t', '')).split(',')
+        tranA = comp[0]  # tranA is #1
+        tranB = comp[1]  # tranB is #2
+        temp = list(wordIter)  # Set tMod to array of word letters
+        temp[int(tranA)-1] = wordIter[int(tranB)-1]
+        temp[int(tranB)-1] = wordIter[int(tranA)-1]
+        wordIter = temp
+
+    if repItem[0] == "s":  # Change character code of #1 by #2
+        comp = (repItem.replace('s', '')).split(',')  # Format input
+        incA = int(comp[0])-1  # incA is the target
+        incB = int(comp[1])  # incB is the change factor
+        incC = ord(wordIter[incA])  # incC is the character code of the target
+        if (incC < 123) and (incC > 96):
+            incB = (incB % 26)  # Level out absurd values
+            newLetter = incC + incB  # Combine numbers
+            if newLetter > 122:  # rewind z-a
+                newLetter = chr(newLetter - 26)
+            elif newLetter < 97:  # rewind a-z
+                newLetter = chr(newLetter + 26)
+            else:
+                newLetter = chr(newLetter)
+            wordIter[incA] = newLetter  # Final Application
+
+    if repItem[0] == "d":  # Duplicate #1, #2 times
+        comp = repItem.replace('d', '').split(',')
+        dupA = int(comp[0])-1  # dupA is target
+        dupB = int(comp[1])  # dupB is the change factor
+        dupC = ord(wordIter[abs(dupA)])
+        if (dupC < 123) and (dupC > 96):  # Prevents special characters such as ' ' from being duplicated
+            if dupB > 0:  # D+
+                dupChar = wordIter[dupA]  # dupChar is the character being split
+                dupString = ""  # initialize
+                for repVal in range(dupB):  # Duplicate letter
+                    dupString = "" + dupString + dupChar
+                print(wordIter)
+                if dupA == 0:  # Place letters at start    #REWORK FOR LIST SETUP
+                    wordIter = list(dupString) + wordIter
+                elif dupA == countChar-1:  # Place letters at end
+                    wordIter = wordIter + list(dupString)
+                else:  # Place letters somewhere in the middle
+                    wordIter = (wordIter[0:dupA]) + list(dupString) + (wordIter[dupA: countChar])
+                print(wordIter)
+            else:  # D-
+                dupB = abs(dupB)
+                wordIter = wordIter[0:dupA+1] + wordIter[dupA + dupB+1:countChar]
+
+    if repItem[0] == "k":
+        kickNum = int(repItem.replace('k', ''))
+        kickNum = kickNum % 26  # Level out obsurd values
+        for x in range(countChar):
+            newLetter = ord(wordIter[x])
+            if (newLetter < 123) and (newLetter > 96):
+                newLetter = newLetter + kickNum
+                if newLetter > 122:  # rewind z-a
+                    newLetter = chr(newLetter - 26)
+                elif newLetter < 97:  # rewind a-z
+                    newLetter = chr(newLetter + 26)
+                else:
+                    newLetter = chr(newLetter)
+                wordIter[x] = newLetter  # Final Application
+
+    """
+    print(repItem)
+    print(wordIter)
+    """
+
+show = original + " becomes " + ''.join(wordIter)
+print(show)
