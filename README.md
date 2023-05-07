@@ -4,10 +4,12 @@ This repository contains the majority of my python experience and passion projec
 
 #### Folders
 `Encrypt` - Encryption Algorithm. <br/>
+`turtleStuff` - Various turtle projects. <br/>
 `` - . <br/>
 `` - . <br/>
-`` - . <br/>
-`` - . <br/>
+
+#### Files
+`fancy.py` - Allows for more refined output. <br/>
 `` - . <br/>
 `` - . <br/>
 `` - . <br/>
