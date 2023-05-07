@@ -1,0 +1,39 @@
+House
+    # Function List
+    # house - Box with triangle top and windows
+
+Shapes
+    # Function List
+    # triangle - Creates a scalene triangle with 3 side lengths
+    # iso_triangle - Creates an isoceles triangle with a base and height
+    # rect - Creates a rectangle with length and width
+    # parallel - Creates a parallelogram with length, with and the acute angle in degrees
+    # polygon - Creates an equilateral polygon with sides and length
+    # pyramid - Creates a seemingly 3-d pyramid shape
+    # customTriangle -
+
+    # Notes for shapes
+    # Color - Applies to pen and will fill the shape in with that color
+    # Rotation - Rotates the shape counterclockwise
+    # Squares and rhombuses can be made using rect and parallel with length and width set equal
+
+Formations
+    # Function List
+    # tree - Creates a brown tree trunk with green triangular leaves
+    # mountain - Creates a triangular mountain using a base and height, with gradient level 'layer'
+    # snowflake - Creates a snowflake of a certain length and 'layer' pertusions from each branch
+
+    # Notes for Formations
+    # Color - Applies to pen and will fill the shape in with that color
+    # Rotation - Rotates the shape counterclockwise
+
+Gradient
+    # Function List
+    # gradient -
+    # find_grads -
+
+Backdrop
+    # Function List
+    # backdrop -
+    # hills -
+    # back_mount -
