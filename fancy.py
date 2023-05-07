@@ -1,3 +1,9 @@
+"""
+Author      : Ethan Leone
+Date        : 04/12/2023
+Description : Customized print function for flashy output
+"""
+
 import sys
 import math
 import os
