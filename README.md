@@ -4,8 +4,9 @@ This repository contains the majority of my python experience and passion projec
 
 #### Folders
 `Encrypt` - Encryption Algorithm. <br/>
+`guiStuff` - Examples and clock for guis. <br/>
 `turtleStuff` - Various turtle projects. <br/>
-`` - . <br/>
+
 `` - . <br/>
 
 #### Files
