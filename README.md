@@ -10,6 +10,4 @@ This repository contains the majority of my python experience and passion projec
 
 #### Files
 `fancy.py` - Allows for more refined output. <br/>
-`` - . <br/>
-`` - . <br/>
-`` - . <br/>
+
