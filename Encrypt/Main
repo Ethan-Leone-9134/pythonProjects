@@ -1,0 +1,230 @@
+import array
+
+# t#,# = switch indicated characters  (t3,2)
+# r = moves first character to the end  (r)
+# r- = moves last character to the start  (r-)
+# s#,@ = moves  character(#) up the alphabet by a factor of @  (s3,5)
+# s#,-@ = moves  character(#) down the alphabet by a factor of @  (s3,-5)
+# d#,@ = duplicates character(#) @ times  (d4,1)
+# k# - s but all letters (k4)
+
+
+def peudoRand(a, b, c, lim):
+    limDig = len(list(str(lim)))
+    a = a + 1
+    b = b + 1
+    c = c + 1
+    fir = ((a*2/7+4-b*4/2)/12*((a*4*b)**c) + 103)/(12*c)
+    sec = (c*14+48*b+83)/(b*a+3*b+18*c-25)/(a*b*c)
+    thi = (295+a*3*b-43*c+12*a)/((18*a)*(-4*c))
+    com = 10+a*b*c
+    while com > lim:
+        c = c + a*b
+        com = (int(com)**2)*(fir * sec / thi)/(18+c*5)
+        com = int(list(str(com))[-limDig])
+    return com
+
+
+def shortCode(codeType):
+    codeType = codeType.replace(' ','')
+    codeName = codeType[0:5]
+    codeA = int(codeType[5])
+    codeB = int(codeType[6])
+    chars = int(codeType[7:len(codeType)])
+
+    if 3 == 2:  # Print Variables
+        print(codeName)
+        print(codeA)
+        print(codeB)
+        print(chars)
+
+    if codeType[0:5] == 'alpha':
+        count = (codeA*codeB)+12
+        codeArray = ['']*count
+        for x in range(count):
+            pick = peudoRand(codeA, codeB, x, 7)
+            # print(pick)
+            if pick == 0:
+                codeArray[x] = 'r'
+            elif pick == 1:
+                codeArray[x] = 'r-'
+            elif pick == 2:
+                termA = (codeA * 295+49-codeB)*(x+1)
+                termB = (4*codeA + (x+1)*92 - codeB*27)
+                codeArray[x] = 't' + str((termA % chars)+1) + ',' + str((termB % chars)+1)
+            elif pick == 3:
+                termA = (codeA * 295+49-codeB)*(x+1)
+                termB = (4*codeA + (x+1)*92 - codeB*27)
+                codeArray[x] = 's' + str((termA % chars)+1) + ',' + str((termB % chars)+1)
+            elif pick == 4:
+                termA = (codeA * 295+49-codeB)*(x+1)
+                termB = (4*codeA + (x+1)*92 - codeB*27)
+                codeArray[x] = 's' + str((termA % chars)+1) + ',-' + str((termB % chars)+1)
+            elif pick == 5:
+                termA = (codeA * 295+49-codeB)*(x+1)
+                termB = peudoRand(codeA, codeB, x, 1)
+                codeArray[x] = 'd' + str((termA % chars)+1) + ',' + str(termB+1)
+            elif pick == 6:
+                codeArray[x] = 'k' + str(peudoRand(codeA, codeB, x, 25)+1)
+            elif pick == 7:
+                codeArray[x] = 'k-' + str(peudoRand(codeA, codeB, x, 25)+1)
+        print(codeArray)
+        final = ';'.join(codeArray)
+
+    return final
+
+
+def redirect(algor, direction):
+    if direction == 'E':
+        direction = 'E'
+    elif direction == 'D':
+        splitDA = algor.split(';')
+        reptInd = 1 + algor.count(';')
+        compAlg = [''] * reptInd
+        for x in range(reptInd):
+            reptItem = splitDA[(reptInd - x - 1)]
+            if reptItem == "r":
+                compAlg[x] = "r-"
+            elif reptItem == "r-":
+                compAlg[x] = "r"
+            elif reptItem[0] == "t":
+                compAlg[x] = reptItem
+            elif reptItem[0] == 'd':  # INVERT D
+                comma = reptItem.find(',')
+                if reptItem[comma:comma + 2] == ',-':
+                    temp = reptItem.replace(',-', ',')
+                else:
+                    temp = reptItem.replace(',', ',-')
+                compAlg[x] = temp
+            elif reptItem[0] == 'k':  # INVERT K
+                if reptItem[0:2] == 'k-':
+                    temp = reptItem.replace('k-', 'k')
+                else:
+                    temp = reptItem.replace('k', 'k-')
+                compAlg[x] = temp
+            elif reptItem[0] == "s":
+                comma = reptItem.find(',')
+                if reptItem[comma:comma + 2] == ',-':
+                    temp = reptItem.replace(',-', ',')
+                else:
+                    temp = reptItem.replace(',', ',-')
+                compAlg[x] = temp
+        algor = ';'.join(compAlg)
+    else:
+        print("Error: Invalid input")
+        exit()
+    return algor
+
+
+def primary(wordIter, algor):
+    total = 1 + algor.count(';')
+    splitDA = algor.split(';')
+    wordIter = list(wordIter)
+    for y in range(total):
+        repItem = splitDA[y]
+        countChar = int(len(wordIter))
+        if repItem[0] == "r":  # Place char 1 at end
+            if repItem != "r":  # R-
+                r2 = wordIter[countChar - 1]
+                r1 = ''.join(wordIter[0:countChar - 1])
+                wordIter = list(r2 + r1)
+            else:  # R
+                r1 = wordIter[0]
+                r2 = ''.join(wordIter[1:countChar])
+                wordIter = list(r2 + r1)
+
+        if repItem[0] == "t":  # Switch #1 with #2
+            comp = (repItem.replace('t', '')).split(',')
+            tranA = comp[0]  # tranA is #1
+            tranB = comp[1]  # tranB is #2
+            temp = list(wordIter)  # Set tMod to array of word letters
+            temp[int(tranA) - 1] = wordIter[int(tranB) - 1]
+            temp[int(tranB) - 1] = wordIter[int(tranA) - 1]
+            wordIter = temp
+
+        if repItem[0] == "s":  # Change character code of #1 by #2
+            comp = (repItem.replace('s', '')).split(',')  # Format input
+            incA = int(comp[0]) - 1  # incA is the target
+            incB = int(comp[1])  # incB is the change factor
+            incC = ord(wordIter[incA])  # incC is the character code of the target
+            if (incC < 123) and (incC > 96):
+                incB = (incB % 26)  # Level out absurd values
+                newLetter = incC + incB  # Combine numbers
+                if newLetter > 122:  # rewind z-a
+                    newLetter = chr(newLetter - 26)
+                elif newLetter < 97:  # rewind a-z
+                    newLetter = chr(newLetter + 26)
+                else:
+                    newLetter = chr(newLetter)
+                wordIter[incA] = newLetter  # Final Application
+
+        if repItem[0] == "d":  # Duplicate #1, #2 times
+            comp = repItem.replace('d', '').split(',')
+            dupA = int(comp[0]) - 1  # dupA is target
+            dupB = int(comp[1])  # dupB is the change factor
+            dupC = ord(wordIter[abs(dupA)])
+            if (dupC < 123) and (dupC > 96):  # Prevents special characters such as ' ' from being duplicated
+                if dupB > 0:  # D+
+                    dupChar = wordIter[dupA]  # dupChar is the character being split
+                    dupString = ""  # initialize
+                    for repVal in range(dupB):  # Duplicate letter
+                        dupString = "" + dupString + dupChar
+                    if dupA == 0:  # Place letters at start    #REWORK FOR LIST SETUP
+                        wordIter = list(dupString) + wordIter
+                    elif dupA == countChar - 1:  # Place letters at end
+                        wordIter = wordIter + list(dupString)
+                    else:  # Place letters somewhere in the middle
+                        wordIter = (wordIter[0:dupA]) + list(dupString) + (wordIter[dupA: countChar])
+                else:  # D-
+                    dupB = abs(dupB)
+                    wordIter = wordIter[0:dupA + 1] + wordIter[dupA + dupB + 1:countChar]
+
+        if repItem[0] == "k":
+            kickNum = int(repItem.replace('k', ''))
+            kickNum = kickNum % 26  # Level out obsurd values
+            for x in range(countChar):
+                newLetter = ord(wordIter[x])
+                if (newLetter < 123) and (newLetter > 96):
+                    newLetter = newLetter + kickNum
+                    if newLetter > 122:  # rewind z-a
+                        newLetter = chr(newLetter - 26)
+                    elif newLetter < 97:  # rewind a-z
+                        newLetter = chr(newLetter + 26)
+                    else:
+                        newLetter = chr(newLetter)
+                    wordIter[x] = newLetter  # Final Application
+
+        """
+        print(repItem)
+        print(wordIter)
+        """
+    return wordIter
+
+
+def main1():
+    phrase = input("What is the phrase? ")
+    code = input("What is the algorithm? ")
+    direction = str.capitalize(input("Are you trying to encrypt(E) or decrypt(D)? "))
+    original = phrase
+    if ';' not in code:
+        code = shortCode(code)
+    algor = redirect(code, direction)
+    wordIter = primary(phrase, algor)
+    show = original + " becomes " + ''.join(wordIter)
+    print(show)
+
+
+def main2():
+    phrase = 'e tqqreb ypllxqjllllf tkii nyii lkkk qebb igsbjxe axv lc jxoz'
+    code = 'alpha 8452'
+    direction = 'D'
+    original = phrase
+    if ';' not in code:
+        code = shortCode(code)
+    algor = redirect(code, direction)
+    wordIter = primary(phrase, algor)
+    show = "'" + original + "' becomes '" + ''.join(wordIter) + "'"
+    print(show)
+
+
+main1()
