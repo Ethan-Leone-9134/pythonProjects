@@ -1,0 +1,37 @@
+import numpy
+from PIL import Image
+import array
+import sys
+
+# Compares entire arrays
+
+# Start Formatting
+raw_image = 'IMG_4026.png'  # Photo to call
+rgbaimage = Image.open(raw_image)  # Crack it into rgba values
+image = rgbaimage.convert('RGB')  # Convert rgba into rgb
+data = numpy.asarray(image)   # Set array of pixels
+numpy.set_printoptions(threshold=numpy.inf)  # This cade makes line if statements compare entire array
+print(data.shape)   # Print array dimensions
+
+# Begin Manipulation
+black_space = data[0]  # Find First Line
+pixel, xcords = Image.fromarray(black_space).size  # Get components of first line
+black_pixel = str(black_space[0:1])  # Get value of black_space pixels
+for x in range(xcords):  # Repeat for each value in black_space width
+    if black_pixel != str(black_space[x:(x+1)]):  # Stop program if top_line is not one color
+        exit()
+
+width, height = Image.fromarray(data).size  # Get photo width and height
+while str(data[0]) == str(black_space):  # Run as long as the top line is black_space
+    data = data[1:height+1]  # Trim top line off
+    height = height - 1
+print(Image.fromarray(data).size)
+while str(data[height-1]) == str(black_space):  # Run as long as the bottom line is black_space
+    data = data[0:height-1]  # Trim bottom line off
+    height = height - 1
+print(Image.fromarray(data).size)
+
+if input('Would you like to save? ') == 'Y':
+    import random
+    number = random.randint(1000, 9999)
+    gr_im= Image.fromarray(data).save(raw_image)

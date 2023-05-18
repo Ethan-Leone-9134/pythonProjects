@@ -1,0 +1,22 @@
+"""
+File Name   :  Updated Primary.py
+Author      :  [Me]
+Date        :  5/15/2023
+Description :  This script performs image processing on multiple files, moving them from a start to end folder.
+
+Usage:
+- Ensure that the required libraries are installed by running 'pip install numpy pillow pytesseract'.
+- Ensure that the Tesseract OCR engine is working properly.
+- Update the 'pathways' module with the correct file folder pathways.
+- Run the script to perform the desired image processing tasks.
+"""
+
+
+
+    """
+    Function [Description]
+    Inputs:
+        name (type)     : [Description]
+    Outputs:
+        name (type)     : [Description]
+    """
