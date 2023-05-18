@@ -2,7 +2,7 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QDesktopWidget, QMainWindow, QPushButton, QLabel
 from PyQt5.QtGui import QFont
-from PyQt5.QtCore import QCoreApplication
+from PyQt5.QtCore import QCoreApplication, Qt
 import time
 import math
 
@@ -10,11 +10,10 @@ import math
 class MyWindow(QMainWindow):    # Creates figure window object
     def __init__(self):         # Names the figure window as "self"
         super().__init__()      # Gives figure window its properties
-        screen = QDesktopWidget().screenGeometry()    # Find screen dimensions
-        self.setGeometry(0, 0, screen.width(), screen.height())     # Set figure dimensions to screen size
-        # self.showMaximized()
-        # set window name and size
-        self.setWindowTitle("Poker Clock")          # Create figure window name
+        self.screen = QDesktopWidget().screenGeometry()                 # Find screen dimensions
+        self.winSize = [self.screen.width(), self.screen.height()]      # Window dimensions
+        self.setGeometry(0, 0, self.winSize[0], self.winSize[1])        # Set figure dimensions to screen size
+        self.setWindowTitle("Clock")          # Create figure window name
 
         ##### Start Main Code #####
 
@@ -27,8 +26,9 @@ class MyWindow(QMainWindow):    # Creates figure window object
         # create timeClock
         self.timeClock = QLabel("", self)
         self.showTime(self.remTime)
-        self.timeClock.setGeometry(200, 100, 200, 200)
-        self.timeClock.setFont(QFont("Arial", 12))
+        self.timeClock.setGeometry(200, 100, self.winSize[0]-400, 600)
+        self.timeClock.setFont(QFont("Arial", 250))
+        self.timeClock.setAlignment(Qt.AlignCenter)
 
     #####  End main code  #####
     ##### Start functions #####
@@ -58,54 +58,41 @@ class MyWindow(QMainWindow):    # Creates figure window object
 
     def createPushButtons(self):    # Function to create all push button objects
 
-        ### Round change ###
-        # create backRoundButton
-        self.backRoundButton = QPushButton("<", self)           # Create push button object
-        self.backRoundButton.setGeometry(100, 100, 50, 50)      # Set dimensions for pushbutton
-        self.backRoundButton.clicked.connect(self.backRound)    # Sets callback
-
-        # create nextRoundButton
-        self.nextRoundButton = QPushButton(">", self)           # Create push button object
-        self.nextRoundButton.setGeometry(100, 200, 50, 50)      # Set dimensions for pushbutton
-        self.nextRoundButton.clicked.connect(self.nextRound)    # Sets callback
 
         ### Second Change ###
         # create backSecondButton
         self.backSecButton = QPushButton("+", self)             # Create push button object
-        self.backSecButton.setGeometry(100, 300, 50, 50)        # Set dimensions for pushbutton
+        self.backSecButton.setGeometry(self.winSize[0]-200, 300, 100, 100)        # Set dimensions for pushbutton
         self.backSecButton.clicked.connect(self.backSec)        # Sets callback
+        self.backSecButton.setFont(QFont("Arial", 30))          # Set font
 
         # create nextSecondButton
         self.nextSecButton = QPushButton("-", self)             # Create push button object
-        self.nextSecButton.setGeometry(100, 400, 50, 50)        # Set dimensions for pushbutton
+        self.nextSecButton.setGeometry(self.winSize[0]-200, 500, 100, 100)        # Set dimensions for pushbutton
         self.nextSecButton.clicked.connect(self.nextSec)        # Sets callback
+        self.nextSecButton.setFont(QFont("Arial", 30))          # Set font
 
         ### Minute Change ###
         # create backMinuteButton
-        self.backSecButton = QPushButton("+", self)             # Create push button object
-        self.backSecButton.setGeometry(300, 300, 50, 50)        # Set dimensions for pushbutton
-        self.backSecButton.clicked.connect(self.backMin)        # Sets callback
+        self.backMinButton = QPushButton("+", self)             # Create push button object
+        self.backMinButton.setGeometry(100, 300, 100, 100)        # Set dimensions for pushbutton
+        self.backMinButton.clicked.connect(self.backMin)        # Sets callback
+        self.backMinButton.setFont(QFont("Arial", 30))          # Set font
 
         # create nextMinuteButton
-        self.nextSecButton = QPushButton("-", self)             # Create push button object
-        self.nextSecButton.setGeometry(300, 400, 50, 50)        # Set dimensions for pushbutton
-        self.nextSecButton.clicked.connect(self.nextMin)        # Sets callback
+        self.nextMinButton = QPushButton("-", self)             # Create push button object
+        self.nextMinButton.setGeometry(100, 500, 100, 100)        # Set dimensions for pushbutton
+        self.nextMinButton.clicked.connect(self.nextMin)        # Sets callback
+        self.nextMinButton.setFont(QFont("Arial", 30))          # Set font
 
         # create playPauseButton
         self.playPauseButton = QPushButton("⏵", self)           # Create push button
-        self.playPauseButton.setGeometry(200, 400, 50, 50)      # Set dimensions for pushbutton
+        self.playPauseButton.setGeometry(int((self.winSize[0])/2)-50, 700, 100, 100)      # Set dimensions for pushbutton
         self.playPauseButton.clicked.connect(self.playPause)    # Sets callback
+        self.playPauseButton.setFont(QFont("Arial", 30))          # Set font
 
     #####   End Normal Functions   #####
     ##### Start Callback Functions #####
-
-    def backRound(self):            # Define button callback
-        print("Back 1 Round")       # Say that the button was clicked
-        self.timeClock.setText("Reverse")
-
-    def nextRound(self):
-        print("Next 1 Round")
-        self.timeClock.setText("Forward")
 
     def nextSec(self):                      # Define button callback
         self.remTime = self.remTime - 1     # Increment time
