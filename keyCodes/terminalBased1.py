@@ -55,8 +55,6 @@ def writePin(pin:str, user: dict):
         file.write(json_data)
 
 
-
-
 def main():
 
     print("N - New")                # Ask for interaction type
@@ -72,8 +70,18 @@ def main():
         while pin in pinList:               # Keep asking until entry is not in use
             pin = input("Pincode in use, Please try a different one: ")
 
-        user = personData(pin)              # Generate class object
-        writePin(pin, user.__dict__)        # Save user data
+        attributeList = ["Name", "Birthday", "Phone Number"]
+        userData = {}  # Dictionary to store attribute-value pairs
+
+        for attribute in attributeList:
+            value = input(f"Enter {attribute}: ")
+            userData[attribute] = value
+        
+        userData.update({"Pincode": pin, 
+                         "creationDate": round(time.time()), 
+                         "punches": [round(time.time())]})
+
+        writePin(pin, userData)        # Save user data
    
     elif request.lower() == 's':            # Set and show values
 

@@ -1,0 +1,272 @@
+"""
+File Name   :  Updated Primary.py
+Author      :  [Me]
+Date        :  5/15/2023
+Description :  This script performs image processing on multiple files, moving them from a start to end folder.
+
+Usage:
+- Ensure that the required libraries are installed by running 'pip install numpy pytesseract opencv-python pillow'.
+- Ensure that the Tesseract OCR engine is working properly.
+- Update the 'pathways' module with the correct file folder pathways.
+- Run the script to perform the desired image processing tasks.
+
+"""
+
+#%% IMPORT STATEMENTS ###
+
+import os               # For operating system related functionalities
+import time             # For time-related operations
+import cv2              # For computer vision tasks
+import numpy as np      # For numerical operations and array manipulation
+import pytesseract      # For optical character recognition (OCR) using Tesseract
+from typing import List, Union
+from PIL import Image, ImageFilter  # For image processing and manipulation
+import pathways as path             # Custom file containing file folder pathways
+
+"""
+Function List
+- Image and OCR Functions
+    - formatImage : Opens and formats a given file
+    - image2Array : Uses OCR to convert image to position array
+    - trimFromPos : Uses positions to trim the top and bottom
+    - enhancement : Run enhancement protocols for the OCR
+- Locate Position Functions
+    - locateKeyPos : Analyze the position array to find keyPhrases
+    - find1st : Enchance until 1st phrase is found
+    - find2nd : Enchance until 2nd phrase is found
+"""
+
+
+#%% Image and OCR Functions ###
+
+def formatImage(imagePath: str) -> Union[np.ndarray, np.ndarray]:        # noqa
+    """
+    Function opens and formats a given file
+    Inputs:
+        imagePath   (str)      : File path for the image that will be cropped
+    Outputs:
+        pixels   (numpy array) : 3-D image array
+        wordData (numpy array) : Extracted text array
+    """
+
+    # Open File
+    rawimage = Image.open(imagePath)        # Open image as rgba
+    image = rawimage.convert('RGB')         # Fix file type to rgb
+    pixels = np.array(image)                # Convert image to numpy array
+
+    # Preprocessing for OCR
+    grayscale_image = cv2.cvtColor(pixels, cv2.COLOR_RGB2GRAY)
+    _, binary_image = cv2.threshold(grayscale_image, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+    denoised_image = cv2.GaussianBlur(binary_image, (3, 3), 0)
+    equalized_image = cv2.equalizeHist(denoised_image)
+    
+    wordData = image2Array(equalized_image)         # Perform OCR using Pytesseract
+
+    return pixels, wordData
+
+
+def image2Array(image: Image.Image) -> np.ndarray:
+    """
+    Function uses the pytesseract ocr to convert an image into an array of position data from ALL words
+    Inputs:
+        image  (Image)    :  Image that is meant to be read and opened
+    Outputs:
+        array3 (array)    :  Array containing data for every word detected
+    """
+
+    # Run the OCR
+    areas = pytesseract.image_to_data(image)            # Get text array
+    inArray = areas.splitlines()                        # Format text array
+
+    # Remove scrap "space" lines
+    array2 = []                                         # Initialize array2
+    for i in range(len(inArray)):                       # Repeat with each line
+        if str(inArray[i])[-3:-1] != "-1":              # Check final value
+            array2.append((inArray[i]).split('\t'))     # Add value to next array
+
+    array3 = np.asarray(array2[1:])                        # Format final array
+
+    return array3
+
+
+def trimFromPos(data: list, keyPos1: list, keyPos2: list) -> Image.Image:
+    """
+    Function uses the position data to actually trim the edges off of the top and bottom
+    Inputs:
+        data (array)     -  3-D Image Information
+        keyPos1 (array)  -  Important data for the 1st key word
+        keyPos2 (array)  -  Important data for the 2nd key word
+    Outputs:
+        (image)          -  PNG Image of the final product
+    """
+
+    key1True = keyPos1[:5]              # Take only the first usage of the 1st key word
+    key2True = keyPos2[-5:]             # Take only the last  usage of the 2nd key word
+    topPix = int(key1True[1]) + 28      # Find the highest row
+    botPix = int(key2True[1]) - 35      # Find the lowest row
+
+    if topPix > botPix:                 # If the second phrase is above the first
+        print("1 below 2 -", end=" ", flush=True)
+        raise BaseException             # Terminate iteration
+    else:
+        return Image.fromarray(data[topPix:botPix])          # Give only the data from the given range
+
+
+def enhancement(ver: int, targetArea: np.ndarray) -> np.ndarray:
+    """
+    Function is meant to run different enhancement protocols for the OCR ' s benefit
+    Inputs:
+        ver (int)            : Iteration of the loop that determines enhancement type
+        targetArea (array)   : Limited area that will be searched
+    Outputs:
+        newWords (array)     : Updated array of word data
+    """
+
+    # alpha = time.time()
+    width, height, _ = targetArea.shape        # Finds the dimensions
+
+    targetImage = (Image.fromarray(targetArea))  # Convert bottom array into image
+    # targetImage.show()
+
+    targetImage = targetImage.filter(ImageFilter.BoxBlur(ver))  # Add a blurring effect to bottom
+
+    newWords = image2Array(targetImage)  # Reattempt word extraction on bottom
+
+    # print(round(time.time()-alpha, 4), end=" ", flush=True)
+    print("x", end = " ", flush=True)
+    return newWords
+
+#%% Locate Position Functions ###
+
+def locateKeyData(areas: np.ndarray, offset=0) -> Union[list, list]:
+    """
+    Locate the position data of the keywords
+    Inputs:
+        areas   (array)  -  Image's text array
+        offset  (int)    -  Offset for the y-position
+    Outputs
+        keyPos1 (array)  -  Important data for the 1st key word
+        keyPos2 (array)  -  Important data for the 2nd key word
+    """
+
+    keyPos1 = []                                # Initialize list 1
+    keyPos2 = []                                # Initialize list 2
+    for i in range(areas.shape[0]):             # For each word
+        if 'NSFW' in areas[i]:                      # Test if the line contains 1st keyword
+            (dx, dy, w, h, _, txt) = areas[i, 6:12]     # Extract desired data
+            if txt == 'NSFW':                           # Ensure an exact match
+                keyPos1 += [dx, str(int(dy)+offset), w, h, txt]     # Record data to output
+        elif 'Share' in areas[i]:                   # Test if the line contains 2nd keyword
+            (dx, dy, w, h, _, txt) = areas[i, 6:12]     # Extract desired data
+            if txt == 'Share':                          # Ensure an exact match
+                keyPos2 += [dx, str(int(dy)+offset), w, h, txt]     # Record data to output
+
+    return keyPos1, keyPos2
+
+
+def find1st(targetArea):
+    """
+    Function enhances until 1st phrase is found
+    Inputs:
+        targetArea (array)  : Limited pixel array
+    Outputs:
+        keyPos1 (array)     : Important data for the 1st key word
+    """
+
+    keyPos1 = []                            # Initialize array
+    for i in range(1, 5):                   # For each of the enhancement types
+        if len(keyPos1) < 1:                        # Is there anything in the variable
+            newAreas = enhancement(i, targetArea)           # Find new word position array
+            [keyPos1, _] = locateKeyData(newAreas, 200)     # Find key positions
+        else:                                       # If a key phrase has been identified
+            print("S1", end=" ", flush=True)                            # Inform success
+            break                                           # End loop
+
+    if len(keyPos1) < 1:                    # If there is still nothing after loop
+        print("F1", end=" ", flush=True)                        # Inform failure
+
+    return keyPos1
+
+
+def find2nd(targetArea):
+    """
+    Function enhances until 1st phrase is found
+    Inputs:
+        targetArea (array)  : Limited pixel array
+    Outputs:
+        keyPos2 (array)     : Important data for the 2nd key word
+    """
+
+    keyPos2 = []                            # Initialize array
+    for i in range(1, 5):                   # For each of the enhancement types
+        if len(keyPos2) < 1:                        # Is there anything in the variable
+            newAreas = enhancement(i, targetArea)           # Find new word position array
+            [_, keyPos2] = locateKeyData(newAreas, 1000)     # Find key positions
+        else:                                       # If a key phrase has been identified
+            print("S2", end=" ", flush=True)                            # Inform success
+            break                                           # End loop
+
+    if len(keyPos2) < 1:                    # If there is still nothing after loop
+        print("F2", end=" ", flush=True)                        # Inform failure
+
+    return keyPos2
+
+#%% Main Function ###
+
+def mainAlgorithm(rawPath):
+    """
+    Function takes a file path and attempts to cut off the unwanted image
+    Inputs:
+        rawPath (str)     : File path for the original image
+    Outputs:
+        none              : File is overwritten but does not exit function
+    """
+    [data, areas] = formatImage(rawPath)            # Open image file
+    [keyPos1, keyPos2] = locateKeyData(areas)       # Extract initial important data
+
+    if len(keyPos1) != 0:
+        print("S1", end=" ", flush=True)
+    else:
+        minTop = data[200:500]  # Trim very top and center
+        minTop = minTop[:, 1:450]  # Trim right side
+        keyPos1 = find1st(minTop)
+
+
+    if len(keyPos2) != 0:
+        print("S2", end=" ", flush=True)
+    else:
+        [height, width, __] = data.shape
+        minLow = data[1150:(height-150)]                # Trim center and very bottom
+        minLow = minLow[:, int(width / 2):width]        # Trim left side
+        keyPos2 = find2nd(minLow)
+
+
+    if (len(keyPos1) != 0) & (len(keyPos2) != 0):
+        finalImage = trimFromPos(data, keyPos1, keyPos2)      # Find important range
+        newPath = path.end + r"\IMG_b_{:04d}.PNG".format(number)     # Create new file path
+        finalImage.save(newPath)                                    # Save image
+        os.remove(rawPath)                                          # Delete old file
+        print("SUCCESS", end=" ", flush=True)
+    else:                         # If there is a location for both key phrases
+        print("FAILURE", end=" ", flush=True)
+
+#%% Main Code ###
+
+# Initializations
+pytesseract.pytesseract.tesseract_cmd = path.ocr    # Call text reader
+np.set_printoptions(threshold=np.inf)         # Prevents truncation of data
+print(" ")
+
+# Main Loop
+for number in range(1, 10):   # For each value (Note: Includes low, Excludes Top)
+    originPath = path.start + r"\IMG_2_{:04d}.PNG".format(number)  # File Path
+    try:
+        if os.path.exists(originPath):  # Does the image exist
+            alpha = time.time()
+            print("File Number {:04d}:".format(number), end=" ", flush=True)
+            mainAlgorithm(originPath)      # Run the primary program
+            print("in {:0.2f} secs".format(time.time()-alpha))
+    except:
+        print("ERROR")
+
+print('\nComplete')
