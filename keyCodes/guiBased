@@ -1,0 +1,131 @@
+"""
+File Name   :  guiBased.py
+Author      :  Ethan Leone
+Date        :  5/19/2023
+Description :  Uses files to store personel data for key codes with an application window
+
+Usage:
+- Ensure that the required libraries are installed by running 'pip install _______'.
+- Update any custom modules.
+- Run the script to perform the desired tasks.
+"""
+
+
+from PyQt5.QtGui import (QPainter, QColor, QBrush, QFont, QPalette, QIcon)
+from PyQt5.QtCore import (Qt, QSize, QCoreApplication)
+from PyQt5.QtWidgets import (
+    QApplication, QDesktopWidget, QMainWindow, QPushButton, QLabel,
+    QTextEdit, QCheckBox, QVBoxLayout, QLineEdit, QHBoxLayout, QFrame,
+    QScrollArea, QWidget
+)
+import sys
+import time
+import fileInteractor as FI    # Custom module for storage
+
+
+class primeWindow(QMainWindow):    # Creates figure window object
+    """
+    Class [Description]
+    Attributes:
+        name (type) : [Description]
+        screen
+
+    Methods:
+        name        : [Description]
+    """
+    
+    def __init__(self):         # Names the figure window as "self"
+        super().__init__()      # Gives figure window its properties
+        self.screen = QDesktopWidget().screenGeometry()    # Find screen dimensions
+        self.screen = [self.screen.width(), self.screen.height()]  # Window dimensions
+        self.setGeometry(0, 0, self.screen[0], self.screen[1])     # Set figure dimensions to screen size
+        self.setWindowTitle("Passcodes")          # Create figure window name
+        
+        self.pinBox = QLabel("_ - _ - _ - _", self)
+        self.pinBox.setAlignment(Qt.AlignCenter)                # Center align values
+        self.pinBox.setFont(QFont("Arial", 50))  
+        self.pinBox.setGeometry(700, 400, 600, 100)
+
+        self.letterInfo = QLabel("Enter - Punch \n  I - Info\n N - New", self)
+        self.letterInfo.setAlignment(Qt.AlignCenter)                # Center align values
+        self.letterInfo.setFont(QFont("Arial", 20))  
+        self.letterInfo.setGeometry(1500, 50, 300, 350)
+
+        self.validCode = QLabel(" - - ", self)
+        self.validCode.setAlignment(Qt.AlignCenter)                # Center align values
+        self.validCode.setFont(QFont("Arial", 25))  
+        self.validCode.setGeometry(500, 500, 1000, 100)
+
+
+
+    def keyPressEvent(self, event):
+        code = event.key()
+        modifiers = event.modifiers()
+        currPin = (str(self.pinBox.text())).split(' - ')      # Split into array
+        if (code > 64) & (code < 91):       # Letter
+            letter = chr(code)
+            print(f"Letter: {letter}")
+            if letter == 'N':           # New
+                if ('_' not in currPin) & (FI.testPin()):
+                    self.newPin(''.join(currPin))
+            elif letter == 'I':         # Info
+                if '_' not in currPin:
+                    self.infoReq(''.join(currPin))
+            elif letter == '':
+                pass
+        elif (code > 47) & (code < 58):     # Number
+            print(f"Number: {code-48}")
+            if '_' in currPin:
+                currPin[currPin.index('_')] = str(code - 48)    # Set earlist _ to input
+                self.pinBox.setText(' - '.join(currPin))          # Set label
+                if '_' not in currPin:
+                    if FI.testPin(''.join(currPin)):    # If pin in folder
+                        self.validCode.setText("Pin Code Recognized")
+                    else:                               # If pin not in folder
+                        self.validCode.setText("Pin Code Not Recognized")
+        elif code == 16777219:              # Backspace
+            print("Backspace")
+            for i in range(1,5):
+                if currPin[-i] != "_":
+                    currPin[-i] = "_"
+                    break
+            self.pinBox.setText(' - '.join(currPin))          # Set label
+            self.validCode.setText("   ")
+        elif code == 16777220:              # Enter
+            print("Enter")
+            if ('_' not in currPin) & (FI.testPin(''.join(currPin))):
+                self.punchEntered(''.join(currPin))      
+        else:                               # Other
+            print(code)
+
+
+
+
+    def punchEntered(self, pin:str):
+        print("--------------")
+        userData = FI.readPin(pin)                 # Get user's information
+        command = f'{userData["Name"]} : {round(time.time())}'
+        self.validCode.setText(command)
+        userData["punches"].append(round(time.time())) # Add punch to record
+        FI.writePin(pin, userData)                 # Save user data
+
+    def infoReq(self, pin:str):
+        pass
+
+    def newPin(self, pin:str):
+        pass
+
+
+def char(code):
+
+    if (code > -1) & (code < 150):
+        return chr(code)
+    
+    return ["INVALID: {}".format(code) , code]
+
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    wind = primeWindow()
+    wind.show()
+    sys.exit(app.exec_())
