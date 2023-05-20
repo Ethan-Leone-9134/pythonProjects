@@ -1,14 +1,12 @@
-from PyQt5.QtGui import QPainter, QColor, QBrush
-from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtGui import (QPainter, QColor, QBrush, QFont, QPalette, QIcon)
+from PyQt5.QtCore import (Qt, QSize, QCoreApplication)
+from PyQt5.QtWidgets import (
+    QApplication, QDesktopWidget, QMainWindow, QPushButton, QLabel,
+    QTextEdit, QCheckBox, QVBoxLayout, QLineEdit, QHBoxLayout, QFrame,
+    QScrollArea, QWidget
+)
 import sys
-from PyQt5.QtWidgets import QApplication, QDesktopWidget, QMainWindow, QPushButton, QLabel
-from PyQt5.QtGui import QFont, QColor, QPalette, QIcon
-from PyQt5.QtCore import QCoreApplication, Qt
-import sys
-from PyQt5.QtWidgets import QApplication, QDesktopWidget, QMainWindow, QPushButton, QLabel, QTextEdit, \
-     QCheckBox, QVBoxLayout, QLineEdit, QHBoxLayout, QFrame, QScrollArea, QWidget
-from PyQt5.QtGui import QFont, QColor, QPalette, QIcon
-from PyQt5.QtCore import QCoreApplication, Qt
+
 
 
 class widgetEx(QWidget):
@@ -126,6 +124,14 @@ class ScrollBoxEx(QWidget):
 
 
 class PushButtonEx(QMainWindow):    # Creates figure window object
+    """
+    Class [Description]
+    Attributes:
+        name (type) : [Description]
+    Methods:
+        name        : [Description]
+    """
+    
     def __init__(self):         # Names the figure window as "self"
         super().__init__()      # Gives figure window its properties
         self.screen = QDesktopWidget().screenGeometry()    # Find screen dimensions

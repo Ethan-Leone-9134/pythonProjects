@@ -2,7 +2,7 @@
 File Name   :  pathways.py
 Author      :  [Me]
 Date        :  5/15/2023
-Description :  This script contains important file folder paths
+Description :  This module contains important file folder paths
 
 Usage:
 - Module for cropping photos

@@ -1,8 +1,8 @@
 """
 File Name   :  Updated Primary.py
 Author      :  [Me]
-Date        :  5/15/2023
-Description :  This script performs image processing on multiple files, moving them from a start to end folder.
+Date        :  MM/DD/YYYY
+Description :  This script [ ______ ]
 
 Usage:
 - Ensure that the required libraries are installed by running 'pip install _______'.
@@ -11,11 +11,20 @@ Usage:
 """
 
 
-
+def function():
     """
     Function [Description]
     Inputs:
         name (type)     : [Description]
     Outputs:
         name (type)     : [Description]
+    """
+
+class alpha():
+    """
+    Class [Description]
+    Attributes:
+        name (type) : [Description]
+    Methods:
+        name        : [Description]
     """
