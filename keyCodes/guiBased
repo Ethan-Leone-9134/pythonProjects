@@ -6,11 +6,11 @@ Description :  Uses files to store personel data for key codes with an applicati
 
 Usage:
 - Ensure that the required libraries are installed by running 'pip install _______'.
-- Update any custom modules.
+- Ensure that the custom 'fileInteractor' module is installed
 - Run the script to perform the desired tasks.
 """
 
-
+# Import Statements
 from PyQt5 import QtGui
 from PyQt5.QtGui import (QPainter, QColor, QBrush, QFont, QPalette, QIcon)
 from PyQt5.QtCore import (Qt, QSize, QCoreApplication)
@@ -23,6 +23,9 @@ import sys
 import time
 import fileInteractor as FI    # Custom module for storage
 from datetime import datetime
+
+#%% Window Classes ###
+
 
 
 class primeWindow(QMainWindow):    # Creates figure window object
@@ -43,13 +46,13 @@ class primeWindow(QMainWindow):    # Creates figure window object
         self.setGeometry(0, 0, self.winSize[0], self.winSize[1])        # Set figure dimensions to screen size
         self.setWindowTitle("Passcodes")          # Create figure window name
         
-        self.pinBox = centeredLabel("_ - _ - _ - _", 50)
+        self.pinBox = centeredLabel("_ - _ - _ - _", 50, self)      # Main pincode typing area
         self.pinBox.setGeometry(700, 400, 600, 100)
 
-        self.letterInfo = centeredLabel("Enter - Punch \n  I - Info\n N - New", 20)
+        self.letterInfo = centeredLabel("Enter - Punch \n  I - Info\n N - New", 20, self)    # Explain key press values   
         self.letterInfo.setGeometry(1500, 50, 300, 350)
 
-        self.validCode = centeredLabel("  ", 25)
+        self.validCode = centeredLabel("  ", 25, self)              # Informational window about entered code
         self.validCode.setGeometry(500, 500, 1000, 100)
 
 
@@ -86,51 +89,49 @@ class primeWindow(QMainWindow):    # Creates figure window object
 
 
     def punchEntered(self, pin:str):
-        if pin == "9999":
-            self.admin = adminWindow()
-            self.admin.show()
-            while self.admin.isVisible():    # Wait for the settings window to be closed
-                QApplication.processEvents()
+        if pin == "9999":                   # If admin
+            self.admin = adminWindow()          # Open admin window
+            self.admin.show()                   # Show admin window
+            while self.admin.isVisible():       # Wait for the info window to be closed
+                QApplication.processEvents()        # Process events while waiting
         else:
             userData = FI.readPin(pin)                 # Get user's information
-            currTime = datetime.fromtimestamp(round(time.time())).strftime("%A, %B %d, %Y %I:%M:%S")
-            command = f'{userData["Name"]} : {currTime}'
-            self.validCode.setText(command)
-            userData["punches"].append(round(time.time())) # Add punch to record
-            FI.writePin(pin, userData)                 # Save user data
-        self.resetScreen()
+            currTime = datetime.fromtimestamp(round(time.time())).strftime("%A, %B %d, %Y %I:%M:%S")    # Format time
+            command = f'{userData["Name"]} : {currTime}'        # Generate displayed text
+            self.validCode.setText(command)                     # Display text
+            userData["punches"].append(round(time.time()))      # Add punch to record
+            FI.writePin(pin, userData)                          # Save user data
+        self.resetScreen()                   # Clear pin
 
 
     def infoReq(self, pin:str):
-        self.infoWindow = infoWindow(pin)
-        self.infoWindow.show()
-        while self.infoWindow.isVisible():    # Wait for the settings window to be closed
-            QApplication.processEvents()
+        self.infoWindow = infoWindow(pin)       # Open the information window
+        self.infoWindow.show()                  # Display the window
+        while self.infoWindow.isVisible():      # Wait for the info window to be closed
+            QApplication.processEvents()            # Process events while info is open
         
 
     def newPin(self, pin: str):
         attributeList = ["Name", "Birthday", "Phone Number", "E-Mail", "Address"]
-        userData = {}  # Dictionary to store attribute-value pairs
+        userData = {attribute: "" for attribute in attributeList}       # Set all user values to " "
 
-        for attribute in attributeList:
-            # value = input(f"Enter {attribute}: ")
-            value = ""
-            userData[attribute] = value
-        
-        userData.update({"Pincode": pin, 
-                         "creationDate": round(time.time()), 
-                         "punches": [round(time.time())]})
+        newValues = {
+            "Pincode": pin,                         # Get pincode
+            "creationDate": round(time.time()),     # Set create date
+            "punches": [round(time.time())]         # Add a punch
+        }
+        userData.update(newValues)                  # Add fixed values to userdata
+        FI.writePin(pin, userData)                  # Save user data
+        self.infoReq(pin)                           # Open info request window
+        self.resetScreen()                          # Reset the screen
 
-        FI.writePin(pin, userData)        # Save user data
-        self.infoReq(pin)
-        self.resetScreen()
 
 
     def resetScreen(self):
-        QApplication.processEvents()
-        time.sleep(2)
-        self.pinBox.setText("_ - _ - _ - _")
-        self.validCode.setText(" ")
+        QApplication.processEvents()            # Process anything in buffers
+        time.sleep(2)                           # 2-second delay
+        self.pinBox.setText("_ - _ - _ - _")    # Overwrite pincode typing area
+        self.validCode.setText(" ")             # Clear pin info
 
 
 
@@ -142,9 +143,8 @@ class infoWindow(QMainWindow):            # Creates figure window object
         self.setGeometry(0, 0, self.winSize[0], self.winSize[1])        # Set figure dimensions to screen size
         self.setWindowTitle("User Information")                              # Create figure window name
 
-        self.userData = FI.readPin(pin)
-        self.valueBoxes = []
-        self.createBoxes()
+        self.userInfo = FI.readPin(pin)         # Get the user's info from their file
+        self.createBoxes()                      # Generate the informational boxes
 
         self.saveButton = QPushButton("Save and Return!", self)     # Create save button object
         self.saveButton.setGeometry(1500, 525, 200, 50)              # Set dimensions for pushbutton
@@ -152,54 +152,52 @@ class infoWindow(QMainWindow):            # Creates figure window object
 
 
     def createBoxes(self):
-        centralWidget = QWidget(self)  # Create a central widget for the main window
-        # self.setCentralWidget(centralWidget)  # Set the central widget
+        self.valueBoxes = []
+        centralWidget = QWidget(self)                   # Create a central widget for the main window
+        self.mainLayout = QVBoxLayout(centralWidget)    # Create a vertical layout for the central widget
 
-        self.mainLayout = QVBoxLayout(centralWidget)  # Create a vertical layout for the central widget
+        self.basicDataLabel("Key code", self.userInfo["Pincode"])   # Key code
 
-        self.basicDataLabel("Key code", self.userInfo["Pincode"])
+        for key in ["Name", "Birthday", "Phone Number", "E-Mail", "Address"]:   # Most "input" data
+            self.basicDataLabel(key, self.userInfo[key], 1)         # Generate box
 
-        for key in ["Name", "Birthday", "Phone Number", "E-Mail", "Address"]:
-            self.basicDataLabel(key, self.userInfo[key], 1)
+        createDate = datetime.fromtimestamp(self.userInfo["creationDate"]).strftime("%A, %B %d, %Y %I:%M:%S")   # Format create date
+        self.basicDataLabel("Creation Date", createDate)            # Generate create date box
 
-        createDate = datetime.fromtimestamp(self.userInfo["creationDate"]).strftime("%A, %B %d, %Y %I:%M:%S")
-        self.basicDataLabel("Creation Date", createDate)
-
-        centralWidget.setGeometry(50, 50, int(self.winSize[0]*0.6), self.winSize[1]-200)        # Set the size and position of the central widget
+        centralWidget.setGeometry(50, 50, int(self.winSize[0]*0.6), self.winSize[1]-200)        # Set the size and position of the central widget relative to the screen
 
 
     def basicDataLabel(self, key, value, edit=0):
-        lineUp = QHBoxLayout()
+        lineUp = QHBoxLayout()                          # Create a horizontal layout to hold the label and text box
 
-        label = QLabel(key)
+        label = QLabel(key)                             # Create a QLabel for displaying the key
         label.setFont(QFont("Arial", 25))
-        label.setFixedHeight(int(self.winSize[1]/12))
-        label.setFixedWidth( int(self.winSize[0]/5))
+        label.setFixedHeight(int(self.winSize[1]/12))   # Set positions
+        label.setFixedWidth(int(self.winSize[0]/5))
         label.setStyleSheet("border: 2px dashed red")
-        
+
         if edit:
-            textBox = QTextEdit(value)
+            textBox = QTextEdit(value)                  # Create a QTextEdit widget if in edit mode
         else:
-            textBox = QLabel(value)
+            textBox = QLabel(value)                     # Create a QLabel widget if not in edit mode
         textBox.setFont(QFont("Arial", 25))
         textBox.setFixedHeight(int(self.winSize[1]/12))
 
-        lineUp.addWidget(label)
-        lineUp.addWidget(textBox)
-        self.valueBoxes.append(textBox)
-        self.mainLayout.addLayout(lineUp)
-        
+        lineUp.addWidget(label)                         # Add the label widget to the layout
+        lineUp.addWidget(textBox)                       # Add the text box widget to the layout
+        self.valueBoxes.append(textBox)                 # Append the text box widget to the list for later reference
+        self.mainLayout.addLayout(lineUp)               # Add the lineUp layout to the main layout
 
+        
     def savePin(self):
 
-        keys = ["Name", "Birthday", "Phone Number", "E-Mail", "Address"]
-        for index, key in enumerate(keys, 1):
-            value = self.valueBoxes[index].toPlainText()
-            self.userInfo[key] = value
+        keys = ["Name", "Birthday", "Phone Number", "E-Mail", "Address"]    # List of keys to save values from
+        for index, key in enumerate(keys, 1):               # For each value in keys
+            value = self.valueBoxes[index].toPlainText()        # Get new value to value of edit box
+            self.userInfo[key] = value                          # Set new value
 
-        FI.writePin(self.userInfo["Pincode"], self.userInfo)
-
-        self.close()
+        FI.writePin(self.userInfo["Pincode"], self.userInfo)    # Save the file
+        self.close()                                            # Close the window
 
 
 
@@ -306,13 +304,15 @@ class adminWindow(QMainWindow):
         
 
 
+#%% Widget Classes ###
+
+
 
 class KeyCodeButton(QPushButton):
     """
-    Custom QPushButton subclass representing a button with associated user information.
+    Custom QPushButton used to stores a user info dictionary
     """
-
-    def __init__(self, user):
+    def __init__(self, user: dict):
         """
         Initialize the KeyCodeButton.
         Input:  user (dict): A dictionary containing user information.
@@ -322,21 +322,35 @@ class KeyCodeButton(QPushButton):
         self.setText(str(user["Name"]))     # Set the name
         self.setFont(QFont("Arial", 16))    # Set the font
 
-    def code(self):
+    def open(self) -> dict:
         """
         Get the pin code associated with the button.
-        Outputs: str: The pin code as a string.
+        Outputs: user (dict) : A dictionary containing user information.
         """
-        return str(self.user["Pincode"])
+        return self.user
 
 
 
 class centeredLabel(QLabel):
-    def __init__(self, text: str, font: int):
-        super().__init__()
-        self.setText(text)
-        self.setAlignment(Qt.AlignCenter) # type: ignore
-        self.setFont(QFont("Arial", font))  
+    """
+    Custom QLabel that generates centered
+    Note: this is done as its own class definition to simplify the disabling of the Qt.AlignCenter error
+    """
+    def __init__(self, text: str, font: int, parent):
+        """
+        Initializes the centerLabel class
+        Inputs:
+            text (str) - Text to be displayed
+            font (int) - Font size
+            parent (object) - Parent object
+        """
+        super().__init__(text, parent)              # Give normal QLabel props
+        self.setAlignment(Qt.AlignCenter)           # Set horizontally centered       # type: ignore
+        self.setFont(QFont("Arial", font))          # Set font size to input
+
+
+
+#%% main() ###
 
 
 if __name__ == '__main__':
