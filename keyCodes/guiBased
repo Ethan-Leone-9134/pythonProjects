@@ -25,7 +25,6 @@ import fileInteractor as FI    # Custom module for storage
 from datetime import datetime
 
 
-
 class primeWindow(QMainWindow):    # Creates figure window object
     """
     Class [Description]
@@ -39,24 +38,18 @@ class primeWindow(QMainWindow):    # Creates figure window object
     
     def __init__(self):         # Names the figure window as "self"
         super().__init__()      # Gives figure window its properties
-        self.screen = QDesktopWidget().screenGeometry()    # Find screen dimensions
-        self.screen = [self.screen.width(), self.screen.height()]  # Window dimensions
-        self.setGeometry(0, 0, self.screen[0], self.screen[1])     # Set figure dimensions to screen size
+        self.screen = QDesktopWidget().screenGeometry()                 # Find screen dimensions
+        self.winSize = [self.screen.width(), self.screen.height()]      # Window dimensions
+        self.setGeometry(0, 0, self.winSize[0], self.winSize[1])        # Set figure dimensions to screen size
         self.setWindowTitle("Passcodes")          # Create figure window name
         
-        self.pinBox = QLabel("_ - _ - _ - _", self)
-        self.pinBox.setAlignment(Qt.AlignCenter)                # Center align values
-        self.pinBox.setFont(QFont("Arial", 50))  
+        self.pinBox = centeredLabel("_ - _ - _ - _", 50)
         self.pinBox.setGeometry(700, 400, 600, 100)
 
-        self.letterInfo = QLabel("Enter - Punch \n  I - Info\n N - New", self)
-        self.letterInfo.setAlignment(Qt.AlignCenter)                # Center align values
-        self.letterInfo.setFont(QFont("Arial", 20))  
+        self.letterInfo = centeredLabel("Enter - Punch \n  I - Info\n N - New", 20)
         self.letterInfo.setGeometry(1500, 50, 300, 350)
 
-        self.validCode = QLabel("  ", self)
-        self.validCode.setAlignment(Qt.AlignCenter)                # Center align values
-        self.validCode.setFont(QFont("Arial", 25))  
+        self.validCode = centeredLabel("  ", 25)
         self.validCode.setGeometry(500, 500, 1000, 100)
 
 
@@ -190,7 +183,6 @@ class infoWindow(QMainWindow):            # Creates figure window object
             textBox = QLabel(value)
         textBox.setFont(QFont("Arial", 25))
         textBox.setFixedHeight(int(self.winSize[1]/12))
-        textBox.setAlignment(Qt.AlignVCenter)
 
         lineUp.addWidget(label)
         lineUp.addWidget(textBox)
@@ -241,12 +233,13 @@ class adminWindow(QMainWindow):
             self.passWord.deleteLater()                             # Delete password box
             self.titleBar.setText("Type name here")                      # Overwrite title
 
-            self.getAllUsers()                                      # Find all users
-            print(self.masterList)
+            self.masterList = []
+            for pinNumber in FI.getPinList():
+                self.masterList.append(FI.readPin(pinNumber))
 
             searchList = QVBoxLayout(self)
             for tag in self.masterList:
-                currItem = keyCodeButton(tag)
+                currItem = KeyCodeButton(tag)
                 currItem.clicked.connect(self.openSearch)
                 searchList.addWidget(currItem)
 
@@ -272,6 +265,11 @@ class adminWindow(QMainWindow):
     
 
     def basicDataLabel(self, key, value, edit=0):
+        """
+        Method adds a label to the display layout
+        Inputs:
+            key (str) 
+        """
         lineUp = QHBoxLayout()
 
         label = QLabel(key)
@@ -286,7 +284,6 @@ class adminWindow(QMainWindow):
             textBox = QLabel(value)
         textBox.setFont(QFont("Arial", 25))
         textBox.setFixedHeight(int(self.winSize[1]/12))
-        textBox.setAlignment(Qt.AlignVCenter)
 
         lineUp.addWidget(label)
         lineUp.addWidget(textBox)
@@ -294,37 +291,52 @@ class adminWindow(QMainWindow):
         self.mainLayout.addLayout(lineUp)
         
 
-    def getAllUsers(self):
-        self.masterList = []
-        for pinNumber in FI.getPinList():
-            self.masterList.append(FI.readPin(pinNumber))
-
-
     def openSearch(self):
-        value = self.sender()
-        user = FI.readPin(value.code()) # type: ignore
-        self.valueBoxes[0].setText(user["Pincode"])
+        """
+        Sets the display boxes to the value off the pressed box
+        """
+        value = self.sender()                               # Get the pressed box data
+        user = FI.readPin(value.code())     # type: ignore  # Open the json file
+        self.valueBoxes[0].setText(user["Pincode"])         # Set display box 1 value 
         self.valueBoxes[1].setText(user["Name"])
         self.valueBoxes[2].setText(user["Birthday"])
         self.valueBoxes[3].setText(user["Phone Number"])
         self.valueBoxes[4].setText(user["E-Mail"])
         self.valueBoxes[5].setText(user["Address"])
-        pass
+        
 
 
 
-class keyCodeButton(QPushButton):
+class KeyCodeButton(QPushButton):
+    """
+    Custom QPushButton subclass representing a button with associated user information.
+    """
+
     def __init__(self, user):
-        super().__init__()
-        self.user = user
-        self.setText(str(user["Name"]))
-        self.setFont(QFont("Arial", 16)) 
+        """
+        Initialize the KeyCodeButton.
+        Input:  user (dict): A dictionary containing user information.
+        """
+        super().__init__()                  # Include pushbutton props
+        self.user = user                    # Set input as a property
+        self.setText(str(user["Name"]))     # Set the name
+        self.setFont(QFont("Arial", 16))    # Set the font
 
     def code(self):
+        """
+        Get the pin code associated with the button.
+        Outputs: str: The pin code as a string.
+        """
         return str(self.user["Pincode"])
 
 
 
+class centeredLabel(QLabel):
+    def __init__(self, text: str, font: int):
+        super().__init__()
+        self.setText(text)
+        self.setAlignment(Qt.AlignCenter) # type: ignore
+        self.setFont(QFont("Arial", font))  
 
 
 if __name__ == '__main__':
