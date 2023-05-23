@@ -63,8 +63,10 @@ def readPin(pin: str) -> dict:
     
     with open(filepath, "r") as file:    # Load the JSON data from the file
         json_data = file.read()
-    data_list = json.loads(json_data)       # Convert JSON string to a list of dictionaries
-    return data_list
+    dataList = json.loads(json_data)       # Convert JSON string to a list of dictionaries
+    keyList = ["Pincode", "Name", "Birthday", "Phone Number", "E-Mail", "Address", "creationDate", "punches"]
+    userInfo = {key: dataList.get(key, "") for key in keyList}
+    return userInfo
 
 
 def writePin(pin:str, user: dict):
