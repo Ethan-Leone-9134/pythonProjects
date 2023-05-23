@@ -131,7 +131,7 @@ class PushButtonEx(QMainWindow):    # Creates figure window object
     Methods:
         name        : [Description]
     """
-    
+
     def __init__(self):         # Names the figure window as "self"
         super().__init__()      # Gives figure window its properties
         self.screen = QDesktopWidget().screenGeometry()    # Find screen dimensions
@@ -148,6 +148,22 @@ class PushButtonEx(QMainWindow):    # Creates figure window object
 
     def on_button_click(self):      # Define button callback
         print("Button clicked!")    # Say that the button was clicked
+    
+    def keyPressEvent(self, event):
+        code = event.key()
+        modifiers = event.modifiers()
+        currPin = (str(self.pinBox.text())).split(' - ')      # Split into array
+        if (code > 64) & (code < 91):       # Letter
+            letter = chr(code)
+            print(f"Letter: {letter}")
+        elif (code > 47) & (code < 58):     # Number
+            print(f"Number: {code-48}")
+        elif code == 16777219:              # Backspace
+            print("Backspace")
+        elif code == 16777220:              # Enter
+            print("Enter")   
+        else:                               # Other
+            print(code)
 
 
 
