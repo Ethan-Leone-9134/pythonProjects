@@ -28,15 +28,20 @@ from datetime import datetime
 
 
 
-class primeWindow(QMainWindow):    # Creates figure window object
+class primeWindow(QMainWindow):     # Creates primary window object
     """
-    Class [Description]
+    Class generates the primary pincode entering window
     Attributes:
-        name (type) : [Description]
-        screen
-
+        winSize (list)      : 1x2 list of w and h of window
+        pinBox (QLabel)     : Pin code typing area
+        letterInfo (QLabel) : Explains key press values
+        validCode (QLabel)  : Informational window about entered code
     Methods:
-        name        : [Description]
+        keyPressEvent   : Handles keyboard presses
+        punchEntered    : Adds a punch to the pin file
+        infoReq         : Opens the information window
+        newPin          : Generate an empty pin
+        resetScreen     : Clear the old pin from screen
     """
     
     def __init__(self):         # Names the figure window as "self"
@@ -57,6 +62,14 @@ class primeWindow(QMainWindow):    # Creates figure window object
 
 
     def keyPressEvent(self, event):
+        """
+        Handles key presses
+        Inputs:
+            event : key press event item
+        Outputs:
+            none : change a file or window
+        """
+        
         code = event.key()
         modifiers = event.modifiers()
         currPin = (str(self.pinBox.text())).split(' - ')      # Split into array
@@ -89,6 +102,14 @@ class primeWindow(QMainWindow):    # Creates figure window object
 
 
     def punchEntered(self, pin:str):
+        """
+        Handle pressing of enter when all values are filled
+        Inputs: 
+            pin (str) : pincode to have a punch added
+        Outputs:
+            none : change a file or window
+        """
+
         if pin == "9999":                   # If admin
             self.admin = adminWindow()          # Open admin window
             self.admin.show()                   # Show admin window
@@ -105,6 +126,14 @@ class primeWindow(QMainWindow):    # Creates figure window object
 
 
     def infoReq(self, pin:str):
+        """
+        Generate the information request window
+        Inputs: 
+            pin (str) : pincode to have a info changed
+        Outputs:
+            none : change a file or window
+        """
+
         self.infoWindow = infoWindow(pin)       # Open the information window
         self.infoWindow.show()                  # Display the window
         while self.infoWindow.isVisible():      # Wait for the info window to be closed
@@ -112,6 +141,14 @@ class primeWindow(QMainWindow):    # Creates figure window object
         
 
     def newPin(self, pin: str):
+        """
+        Generate a new file
+        Inputs: 
+            pin (str) : pincode to be created
+        Outputs:
+            none : change a file or window
+        """
+
         attributeList = ["Name", "Birthday", "Phone Number", "E-Mail", "Address"]
         userData = {attribute: "" for attribute in attributeList}       # Set all user values to " "
 
@@ -126,8 +163,13 @@ class primeWindow(QMainWindow):    # Creates figure window object
         self.resetScreen()                          # Reset the screen
 
 
-
     def resetScreen(self):
+        """
+        Reset the screen to default
+        Inputs : none
+        Outputs : none
+        """
+
         QApplication.processEvents()            # Process anything in buffers
         time.sleep(2)                           # 2-second delay
         self.pinBox.setText("_ - _ - _ - _")    # Overwrite pincode typing area
@@ -135,7 +177,21 @@ class primeWindow(QMainWindow):    # Creates figure window object
 
 
 
-class infoWindow(QMainWindow):            # Creates figure window object
+class infoWindow(QMainWindow):      # Creates information window object
+    """
+    Class generates the information entering window
+    Attributes:
+        winSize (list)              : 1x2 list of w and h of window
+        userInfo (dict)             : Dictionary containing the user info
+        valueBoxes (list)           : List of input boxes
+        mainLayout (QLayout)        : Information box area
+        saveButton (QPushButton)    : Button to save and close the window
+    Methods:
+        createBoxes     : Generate all informational boxes
+        basicDataLabel  : Generate a label next to a text box
+        savePin         : Save the user info to the json file
+    """
+    
     def __init__(self, pin:str):                             # Names the figure window as "self"
         super().__init__()                                  # Gives figure window its properties
         self.screen = QDesktopWidget().screenGeometry()                 # Find screen dimensions
@@ -147,14 +203,17 @@ class infoWindow(QMainWindow):            # Creates figure window object
         self.createBoxes()                      # Generate the informational boxes
 
         self.saveButton = QPushButton("Save and Return!", self)     # Create save button object
-        self.saveButton.setGeometry(1500, 525, 200, 50)              # Set dimensions for pushbutton
-        self.saveButton.clicked.connect(self.savePin)             # Sets callback
+        self.saveButton.setGeometry(1500, 525, 200, 50)             # Set dimensions for pushbutton
+        self.saveButton.clicked.connect(self.savePin)               # Sets callback
 
 
     def createBoxes(self):
+        """
+        
+        """
         self.valueBoxes = []
-        centralWidget = QWidget(self)                   # Create a central widget for the main window
-        self.mainLayout = QVBoxLayout(centralWidget)    # Create a vertical layout for the central widget
+        infoWidget = QWidget(self)                   # Create a widget for the layout to exist in
+        self.mainLayout = QVBoxLayout(infoWidget)    # Create a vertical layout for the parent widget
 
         self.basicDataLabel("Key code", self.userInfo["Pincode"])   # Key code
 
@@ -164,10 +223,13 @@ class infoWindow(QMainWindow):            # Creates figure window object
         createDate = datetime.fromtimestamp(self.userInfo["creationDate"]).strftime("%A, %B %d, %Y %I:%M:%S")   # Format create date
         self.basicDataLabel("Creation Date", createDate)            # Generate create date box
 
-        centralWidget.setGeometry(50, 50, int(self.winSize[0]*0.6), self.winSize[1]-200)        # Set the size and position of the central widget relative to the screen
+        infoWidget.setGeometry(50, 50, int(self.winSize[0]*0.6), self.winSize[1]-200)        # Set the size and position of the central widget relative to the screen
 
 
     def basicDataLabel(self, key, value, edit=0):
+        """
+        
+        """
         lineUp = QHBoxLayout()                          # Create a horizontal layout to hold the label and text box
 
         label = QLabel(key)                             # Create a QLabel for displaying the key
@@ -190,6 +252,9 @@ class infoWindow(QMainWindow):            # Creates figure window object
 
         
     def savePin(self):
+        """
+        
+        """
 
         keys = ["Name", "Birthday", "Phone Number", "E-Mail", "Address"]    # List of keys to save values from
         for index, key in enumerate(keys, 1):               # For each value in keys
@@ -201,7 +266,20 @@ class infoWindow(QMainWindow):            # Creates figure window object
 
 
 
-class adminWindow(QMainWindow):
+class adminWindow(QMainWindow):     # Creates adminastrative window object
+    """
+    Class generates the primary pincode entering window
+    Attributes:
+        winSize (list)      : 
+        pinBox (QLabel)     : 
+        letterInfo (QLabel) : 
+        validCode (QLabel)  : 
+    Methods:
+        onPassPress     : Handles password enter press
+        basicDataLabel  : Generate a label next to a text box
+        openSearch      : Generate the search bar and info boxes
+    """
+
     def __init__(self):                             # Names the figure window as "self"
         super().__init__()                                  # Gives figure window its properties
         self.screen = QDesktopWidget().screenGeometry()                 # Find screen dimensions
@@ -220,7 +298,10 @@ class adminWindow(QMainWindow):
         self.passWord.returnPressed.connect(self.onPassPress)           # Declare enter command
         
 
-    def onPassPress(self):        
+    def onPassPress(self):   
+        """
+        Handles changing screen when correct password is entered
+        """     
         if self.passWord.text() == "":                  # If it is the password
             self.searchBar = QLineEdit(self)                        # Place searchbar
             self.searchBar.setFont(QFont("Arial", 20)) 
@@ -231,9 +312,11 @@ class adminWindow(QMainWindow):
             self.passWord.deleteLater()                             # Delete password box
             self.titleBar.setText("Type name here")                      # Overwrite title
 
-            self.masterList = []
+            fullList = []
             for pinNumber in FI.getPinList():
-                self.masterList.append(FI.readPin(pinNumber))
+                fullList.append(FI.readPin(pinNumber))
+
+            self.masterList = sorted(fullList, key=lambda x: str(x["Name"]))     # Sort by name value
 
             searchList = QVBoxLayout(self)
             for tag in self.masterList:
@@ -249,7 +332,7 @@ class adminWindow(QMainWindow):
             scroll.setGeometry(100, 300, int(self.winSize[0]*0.3), 500)
             scroll.show()
 
-            centralWidget = QWidget(self)  # Create a central widget for the main window
+            centralWidget = QWidget(self)                   # Create a central widget for the main window
 
             self.mainLayout = QVBoxLayout(centralWidget)  # Create a vertical layout for the central widget
             self.valueBoxes = []
@@ -294,13 +377,13 @@ class adminWindow(QMainWindow):
         Sets the display boxes to the value off the pressed box
         """
         value = self.sender()                               # Get the pressed box data
-        user = FI.readPin(value.code())     # type: ignore  # Open the json file
-        self.valueBoxes[0].setText(user["Pincode"])         # Set display box 1 value 
-        self.valueBoxes[1].setText(user["Name"])
-        self.valueBoxes[2].setText(user["Birthday"])
-        self.valueBoxes[3].setText(user["Phone Number"])
-        self.valueBoxes[4].setText(user["E-Mail"])
-        self.valueBoxes[5].setText(user["Address"])
+        user = value.open()                                  # type: ignore  # Open the json file
+        self.valueBoxes[0].setText(str(user["Pincode"]))         # Set display box 1 value 
+        self.valueBoxes[1].setText(str(user["Name"]))
+        self.valueBoxes[2].setText(str(user["Birthday"]))
+        self.valueBoxes[3].setText(str(user["Phone Number"]))
+        self.valueBoxes[4].setText(str(user["E-Mail"]))
+        self.valueBoxes[5].setText(str(user["Address"]))
         
 
 

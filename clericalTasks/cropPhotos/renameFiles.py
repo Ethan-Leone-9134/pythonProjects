@@ -12,16 +12,21 @@ Usage:
 import os
 import pathways as path
 
-main = path.end             # Get target pathway
-listA = os.listdir(main)    # Get main list
-eCount = sum("_CC_" in fileName for fileName in listA)      # Count finished files
-print(eCount)               # Display finished files
+def renameFile(folder, start, end):
+    listA = os.listdir(folder)    # Get main list
+    eCount = sum(end in fileName for fileName in listA)      # Count finished files
+    print(eCount)               # Display finished files
 
-for fileName in listA:          # For each file
-    if "_b_" in fileName:               # if name includes code
-        eCount += 1                                 # Increment eCount
-        newPath = (main+"\\IMG_CC_{:04d}.PNG".format(eCount))       # Find new file name
-        os.rename((main+"\\"+fileName), newPath)        # Set old path to new path
-        print(newPath)                              # Display finished files
+    for fileName in listA:          # For each file
+        if (start in fileName) & (end not in fileName):               # if name includes code
+            eCount += 1                                 # Increment eCount
+            newPath = (folder+"\\IMG{}{:04d}.PNG".format(end, eCount))       # Find new file name
+            os.rename((folder+"\\"+fileName), newPath)        # Set old path to new path
+            print(newPath)                              # Display finished files
 
-print(eCount)               # Display finished files
+    print(eCount)               # Display finished files
+
+
+
+renameFile(path.end, "_b_", "_CC_")
+renameFile(path.start, "_", "_3_")
