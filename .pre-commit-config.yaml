@@ -1,0 +1,67 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.3.0
+    hooks:
+      - id: check-json
+      - id: check-toml
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: no-commit-to-branch
+      - id: trailing-whitespace
+        additional_dependencies: []
+        args:
+          - --ignore-empty
+          - --ignore-comment-lines
+          - --ignore-missing-eol
+          - --multiline
+        exclude: \s+\\n$
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+  - repo: https://github.com/psf/black
+    rev: 22.6.0
+    hooks:
+      - id: black
+        exclude: ^src/kg_api/models/alembic/versions
+        args:
+          - -l
+          - "100"
+          - --target-version=py38
+  - repo: https://github.com/PyCQA/flake8
+    rev: 3.9.2
+    hooks:
+      - id: flake8
+        exclude: ^src/kg_api/models/alembic
+        additional_dependencies:
+          - darglint==1.7.0
+          - flake8-annotations==2.6.1
+          - flake8-bugbear==21.3.2
+          - flake8-cognitive-complexity==0.1.0
+          - flake8-comprehensions==3.3.1
+          - flake8-docstrings==1.5.0
+          - flake8-eradicate==1.0.0
+          - flake8-polyfill==1.0.2
+          - flake8-pytest-style==1.4.0
+          - pep8-naming==0.11.1
+  - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
+    rev: v8.0.0
+    hooks:
+      - id: commitlint
+        stages:
+          - commit-msg
+        additional_dependencies:
+          - "@commitlint/config-conventional"
+          - "@commitlint/ensure"
+          - commitlint-plugin-function-rules
+ci:
+  autofix_commit_msg: |
+    ci: auto fixes from pre-commit.com hooks [pre-commit.ci]
+
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ""
+  autoupdate_commit_msg: "ci: pre-commit autoupdate [pre-commit.ci]"
+  autoupdate_schedule: quarterly
+  skip: []
+  submodules: false
