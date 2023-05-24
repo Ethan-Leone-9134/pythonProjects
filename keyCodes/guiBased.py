@@ -324,9 +324,9 @@ class adminWindow(QMainWindow):     # Creates adminastrative window object
                 currItem.clicked.connect(self.openSearch)
                 searchList.addWidget(currItem)
 
-            scroll = QScrollArea(self)                      # Create scroll area
+            scroll = QScrollArea(self)                          # Create scroll area
             scroll.setWidgetResizable(True)
-            widget = QWidget()
+            widget = QWidget()                                  
             widget.setLayout(searchList)
             scroll.setWidget(widget)
             scroll.setGeometry(100, 300, int(self.winSize[0]*0.3), 500)
