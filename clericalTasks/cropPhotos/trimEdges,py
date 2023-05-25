@@ -258,8 +258,8 @@ np.set_printoptions(threshold=np.inf)         # Prevents truncation of data # ty
 print(" ")
 
 # Main Loop
-for number in range(1, 200):   # For each value (Note: Includes low, Excludes Top)
-    originPath = path.start + r"\IMG_2_{:04d}.PNG".format(number)  # File Path
+for number in range(1, 9999):   # For each value (Note: Includes low, Excludes Top)
+    originPath = path.start + r"\IMG_{:04d}.PNG".format(number)  # File Path
     try:
         if os.path.exists(originPath):  # Does the image exist
             alpha = time.time()
