@@ -191,12 +191,14 @@ class primeWindow(QMainWindow):  # Creates primary window object
 class infoWindow(QMainWindow):  # Creates information window object
     """
     Class generates the information entering window
+
     Attributes:
         winSize (list)              : 1x2 list of w and h of window
         userInfo (dict)             : Dictionary containing the user info
         valueBoxes (list)           : List of input boxes
         mainLayout (QLayout)        : Information box area
         saveButton (QPushButton)    : Button to save and close the window
+        
     Methods:
         createBoxes     : Generate all informational boxes
         basicDataLabel  : Generate a label next to a text box
@@ -285,10 +287,10 @@ class adminWindow(QMainWindow):  # Creates adminastrative window object
     """
     Class generates the primary pincode entering window
     Attributes:
-        winSize (list)      :
-        pinBox (QLabel)     :
-        letterInfo (QLabel) :
-        validCode (QLabel)  :
+        winSize (list)      : 1x2 list for the window size
+        titleBar (QLabel)     :
+        passWord (QLabel) :
+        searchBar (QLabel)  :
     Methods:
         onPassPress     : Handles password enter press
         basicDataLabel  : Generate a label next to a text box
