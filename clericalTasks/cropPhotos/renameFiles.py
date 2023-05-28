@@ -20,8 +20,8 @@ def renameFile(folder, start, end):
     for fileName in listA:          # For each file
         if (start in fileName) & (end not in fileName):               # if name includes code
             eCount += 1                                 # Increment eCount
-            newPath = (folder+"\\IMG{}{:04d}.PNG".format(end, eCount))       # Find new file name
-            os.rename((folder+"\\"+fileName), newPath)        # Set old path to new path
+            newPath = (folder+f"\\IMG{end}{eCount:04d}.PNG")       # Find new file name
+            os.rename((folder+ "\\"+fileName), newPath)        # Set old path to new path
             print(newPath)                              # Display finished files
 
     print(eCount)               # Display finished files
@@ -29,4 +29,4 @@ def renameFile(folder, start, end):
 
 
 renameFile(path.end, "_b_", "_CC_")
-renameFile(path.start, "_", "_3_")
+renameFile(path.start, "_", "_5_")
