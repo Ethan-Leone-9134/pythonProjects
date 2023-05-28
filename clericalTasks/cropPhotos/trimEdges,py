@@ -31,7 +31,7 @@ import time             # For time-related operations
 import cv2              # For computer vision tasks
 import numpy as np      # For numerical operations and array manipulation
 import pytesseract      # For optical character recognition (OCR) using Tesseract
-from PIL import Image, ImageFilter  # For image processing and manipulation
+from PIL import Image, ImageFilter, ImageEnhance  # For image processing and manipulation
 import pathways as path             # Custom file containing file folder pathways
 
 
@@ -56,7 +56,12 @@ def formatImage(imagePath: str) -> tuple[np.ndarray, np.ndarray]:
     # Preprocessing for OCR
     grayscale_image = cv2.cvtColor(pixels, cv2.COLOR_RGB2GRAY)
     _, binary_image = cv2.threshold(grayscale_image, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-    denoised_image = cv2.GaussianBlur(binary_image, (3, 3), 0)
+
+    # Text enhancement
+    sharpened_image = cv2.filter2D(binary_image, -1, kernel=np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]]))  # Sharpen image using a kernel
+    enhanced_image = cv2.bitwise_not(sharpened_image)  # Invert the image to make text appear black
+
+    denoised_image = cv2.GaussianBlur(enhanced_image, (3, 3), 0)
     equalized_image = cv2.equalizeHist(denoised_image)
     
     wordData = image2Array(equalized_image)         # Perform OCR using Pytesseract
@@ -122,9 +127,32 @@ def enhancement(ver: int, targetArea: np.ndarray) -> np.ndarray:
     """
 
     targetImage = (Image.fromarray(targetArea))  # Convert bottom array into image
-    # targetImage.show()
 
-    targetImage = targetImage.filter(ImageFilter.BoxBlur(ver))  # Add a blurring effect to bottom
+
+    if ver == 1:
+        # Apply image preprocessing techniques for ver = 1
+        # Example: Adjust brightness/contrast, sharpening, or thresholding
+        targetImage = targetImage.convert('L')  # Convert image to grayscale
+        targetImage = targetImage.point(lambda x: x * 1.5)  # Adjust brightness
+
+    elif ver == 2:
+        # Apply image preprocessing techniques for ver = 2
+        # Example: Blurring or denoising
+        targetImage = targetImage.filter(ImageFilter.BoxBlur(4))  # Add a blurring effect
+
+    elif ver == 3:
+        # Apply image preprocessing techniques for ver = 3
+        # Example: Deskewing, rotation, or perspective correction
+        targetImage = targetImage.rotate(2)  # Rotate the image by 2 degrees
+
+    elif ver == 4:
+        contrast_factor = 1.5                           # Adjust contrast factor as needed
+        enhancer = ImageEnhance.Contrast(targetImage)
+        targetImage = enhancer.enhance(contrast_factor)
+
+
+    # if ver == 4:
+    # targetImage.show()
 
     newWords = image2Array(targetImage)  # Reattempt word extraction on bottom
 
@@ -239,7 +267,7 @@ def mainAlgorithm(rawPath):
 
     if (len(keyPos1) != 0) & (len(keyPos2) != 0):
         finalImage = trimFromPos(data, keyPos1, keyPos2)      # Find important range
-        newPath = path.end + f"IMG_b_{number:04d}.PNG"              # Create new file path
+        newPath = path.end + f"\\IMG_b_{number:04d}.PNG"              # Create new file path
         finalImage.save(newPath)                                    # Save image
         os.remove(rawPath)                                          # Delete old file
         print("SUCCESS", end=" ", flush=True)
@@ -254,14 +282,16 @@ np.set_printoptions(threshold=np.inf)         # Prevents truncation of data # ty
 print(" ")
 
 # Main Loop
-for number in range(1, 9999):   # For each value (Note: Includes low, Excludes Top)
-    originPath = path.start + f"\IMG_{number:04d}.PNG"  # File Path
+for number in range(125, 3000):   # For each value (Note: Includes low, Excludes Top)
+    originPath = path.start + f"\\IMG_5_{number:04d}.PNG"  # File Path
     try:
         if os.path.exists(originPath):  # Does the image exist
             alpha = time.time()
             print(f"File Number {number:04d}:", end=" ", flush=True)
             mainAlgorithm(originPath)      # Run the primary program
             print("in {:0.2f} secs".format(time.time()-alpha))
+    except KeyboardInterrupt:
+        break
     except:
         print("ERROR")
 

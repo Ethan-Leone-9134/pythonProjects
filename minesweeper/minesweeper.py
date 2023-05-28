@@ -179,7 +179,7 @@ class FlagBox:
         winner(): Updates the flag box when the game is won.
     """
     
-    def __init__(self, x, y, width, height, backColor, bombs, textColor):
+    def __init__(self, x, y, width, height, backColor, bombCount, textColor):
         """
         Class represents the main informational box for the game flags.
 
@@ -195,8 +195,8 @@ class FlagBox:
 
         self.rect = pygame.Rect(x, y, width, height)
         self.backColor = backColor
-        self.flags = bombs
-        self.bombs = bombs
+        self.flags = bombCount
+        self.bombs = bombCount
         self.text = f"Flags : {self.flags} / {self.bombs}"
         self.textColor = textColor
         self.flagList = set()
@@ -284,15 +284,15 @@ class resetButton(pgc.pygamePushButton):
         """
         super().__init__(window, x, y, width, height, backColor, "Restart", textColor)
 
-    def checkClick(self, mouse_pos):
+    def checkClick(self, mousePos):
         """
         Check if the reset button was pressed
 
         Inputs:
-            mouse_pos - mouse position
+            mousePos - mouse position
         """
 
-        if self.is_clicked(mouse_pos):          # Check if the box was pressed
+        if self.is_clicked(mousePos):          # Check if the box was pressed
             pygame.quit()                           # Terminate pygame
             import subprocess                       # Import subprocess module
             subprocess.Popen(['python', __file__])  # Replay the current script
@@ -463,7 +463,7 @@ def clearSurrounding(buttonsList: list, origin: Button, size: int) -> list:
     while loopVariable:                                     # Detect if last loop had any hits
         loopVariable = False                                    # Reset variable
         for button in buttonsList:                              # For each button
-            if button.opened and not button.cascadeChecked:         # Does it need to be varified
+            if button.opened and not button.cascadeChecked:         # Does it need to be verified
                 loopVariable = True                                     # Increment loop variable
                 button.checked()                                        # Set checked to true for box in question
                 for outer in getSurrounding(button.index, size):        # Cascade around current box
