@@ -395,7 +395,7 @@ def addMines(size: int, buttonsList: list, quantity: int) -> tuple[list, set]:
 
 
 
-#%% Define iterated Functions %%#
+#%% Define Iterated Functions %%#
 
 def checkValid(currPos: int, size: int, mineNum: int) -> bool:
     """

@@ -2,28 +2,16 @@
 File Name   :  Updated Primary.py
 Author      :  [Me]
 Date        :  5/15/2023
-Description :  This script performs image processing on multiple files, moving them from a start to end folder.
+Description :  This script performs image processing on multiple files,
+               moving them from a start to end folder.
 
 Usage:
-- Ensure that the required libraries are installed by running 'pip install numpy pytesseract opencv-python pillow'.
+- Ensure that the required libraries are installed by running 
+    'pip install numpy pytesseract opencv-python pillow'
 - Ensure that the Tesseract OCR engine is working properly.
 - Update the 'pathways' module with the correct file folder pathways.
 - Run the script to perform the desired image processing tasks.
 
-"""
-
-#%% IMPORT STATEMENTS ###
-
-import os               # For operating system related functionalities
-import time             # For time-related operations
-import cv2              # For computer vision tasks
-import numpy as np      # For numerical operations and array manipulation
-import pytesseract      # For optical character recognition (OCR) using Tesseract
-from typing import List, Union
-from PIL import Image, ImageFilter  # For image processing and manipulation
-import pathways as path             # Custom file containing file folder pathways
-
-"""
 Function List
 - Image and OCR Functions
     - formatImage : Opens and formats a given file
@@ -36,10 +24,21 @@ Function List
     - find2nd : Enchance until 2nd phrase is found
 """
 
+#%% IMPORT STATEMENTS ###
+
+import os               # For operating system related functionalities
+import time             # For time-related operations
+import cv2              # For computer vision tasks
+import numpy as np      # For numerical operations and array manipulation
+import pytesseract      # For optical character recognition (OCR) using Tesseract
+from PIL import Image, ImageFilter  # For image processing and manipulation
+import pathways as path             # Custom file containing file folder pathways
+
+
 
 #%% Image and OCR Functions ###
 
-def formatImage(imagePath: str) -> Union[np.ndarray, np.ndarray]:        # noqa
+def formatImage(imagePath: str) -> tuple[np.ndarray, np.ndarray]:
     """
     Function opens and formats a given file
     Inputs:
@@ -80,16 +79,16 @@ def image2Array(image: Image.Image) -> np.ndarray:
 
     # Remove scrap "space" lines
     array2 = []                                         # Initialize array2
-    for i in range(len(inArray)):                       # Repeat with each line
-        if str(inArray[i])[-3:-1] != "-1":              # Check final value
-            array2.append((inArray[i]).split('\t'))     # Add value to next array
+    for _, value in enumerate(inArray):                 # Repeat with each line
+        if str(value)[-3:-1] != "-1":                   # Check final value
+            array2.append(value.split('\t'))            # Add value to next array
 
     array3 = np.asarray(array2[1:])                        # Format final array
 
     return array3
 
 
-def trimFromPos(data: list, keyPos1: list, keyPos2: list) -> Image.Image:
+def trimFromPos(data: np.ndarray, keyPos1: list, keyPos2: list) -> Image.Image:
     """
     Function uses the position data to actually trim the edges off of the top and bottom
     Inputs:
@@ -107,7 +106,7 @@ def trimFromPos(data: list, keyPos1: list, keyPos2: list) -> Image.Image:
 
     if topPix > botPix:                 # If the second phrase is above the first
         print("1 below 2 -", end=" ", flush=True)
-        raise BaseException             # Terminate iteration
+        raise ValueError("1 above 2")             # Terminate iteration
     else:
         return Image.fromarray(data[topPix:botPix])          # Give only the data from the given range
 
@@ -122,9 +121,6 @@ def enhancement(ver: int, targetArea: np.ndarray) -> np.ndarray:
         newWords (array)     : Updated array of word data
     """
 
-    # alpha = time.time()
-    width, height, _ = targetArea.shape        # Finds the dimensions
-
     targetImage = (Image.fromarray(targetArea))  # Convert bottom array into image
     # targetImage.show()
 
@@ -138,7 +134,7 @@ def enhancement(ver: int, targetArea: np.ndarray) -> np.ndarray:
 
 #%% Locate Position Functions ###
 
-def locateKeyData(areas: np.ndarray, offset=0) -> Union[list, list]:
+def locateKeyData(areas: np.ndarray, offset=0) -> tuple[list[str], list[str]]:
     """
     Locate the position data of the keywords
     Inputs:
@@ -243,7 +239,7 @@ def mainAlgorithm(rawPath):
 
     if (len(keyPos1) != 0) & (len(keyPos2) != 0):
         finalImage = trimFromPos(data, keyPos1, keyPos2)      # Find important range
-        newPath = path.end + r"\IMG_b_{:04d}.PNG".format(number)     # Create new file path
+        newPath = path.end + f"IMG_b_{number:04d}.PNG"              # Create new file path
         finalImage.save(newPath)                                    # Save image
         os.remove(rawPath)                                          # Delete old file
         print("SUCCESS", end=" ", flush=True)
@@ -259,11 +255,11 @@ print(" ")
 
 # Main Loop
 for number in range(1, 9999):   # For each value (Note: Includes low, Excludes Top)
-    originPath = path.start + r"\IMG_{:04d}.PNG".format(number)  # File Path
+    originPath = path.start + f"\IMG_{number:04d}.PNG"  # File Path
     try:
         if os.path.exists(originPath):  # Does the image exist
             alpha = time.time()
-            print("File Number {:04d}:".format(number), end=" ", flush=True)
+            print(f"File Number {number:04d}:", end=" ", flush=True)
             mainAlgorithm(originPath)      # Run the primary program
             print("in {:0.2f} secs".format(time.time()-alpha))
     except:

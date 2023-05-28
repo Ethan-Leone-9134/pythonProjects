@@ -58,3 +58,5 @@ class pygamePushButton:
             bool: True if the button is clicked, False otherwise.
         """
         return self.rect.collidepoint(mouse_pos)
+
+
