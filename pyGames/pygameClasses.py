@@ -34,6 +34,7 @@ class pygamePushButton:
         self.text = text
         self.textColor = textColor
         self.window = window
+        
 
 
     def draw(self):
@@ -47,6 +48,31 @@ class pygamePushButton:
         self.window.blit(text, text_rect)                            # Draw the text on the window
 
 
+    # def draw(self):
+    #     """
+    #     Draw the button on the Pygame window.
+    #     """
+    #     if len(self.backColor) == 3:
+    #         surface = self.window
+    #     else:
+    #         surface = pygame.Surface(self.rect.size, pygame.SRCALPHA)
+    #         surface.fill((0, 0, 0, 0))  # Fill with fully transparent color
+    #         surface.set_alpha(0)
+
+        
+    #     backColorWithAlpha = self.backColor + (0,)              # Set the alpha value of the background color to 0
+    #     transparentColor = pygame.Color(*backColorWithAlpha)    # Create a color with transparency using pygame.Color()
+    #     pygame.draw.rect(surface, transparentColor, self.rect)  # Draw the button rectangle on the surface
+
+    #     font = pygame.font.Font(None, 32)                      # Set the font for the button text
+    #     text = font.render(self.text, True, self.textColor)    # Render the button text
+    #     text_rect = text.get_rect(center=self.rect.center)     # Position the text at the center of the button
+    #     surface.blit(text, text_rect)                           # Draw the text on the surface
+    #     self.window.blit(surface, self.rect.topleft)            # Blit the surface onto the window at the button position
+
+
+
+
     def is_clicked(self, mouse_pos):
         """
         Check if the button is clicked based on the mouse position.
@@ -58,5 +84,4 @@ class pygamePushButton:
             bool: True if the button is clicked, False otherwise.
         """
         return self.rect.collidepoint(mouse_pos)
-
 

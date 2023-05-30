@@ -28,3 +28,6 @@ LIME = (0, 128, 0)
 MAROON = (128, 0, 0)
 INDIGO = (75, 0, 130)
 LAVENDER = (230, 230, 250)
+
+# Transparent Placeholder
+CLEAR = (0, 0, 0, 0)

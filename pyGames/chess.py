@@ -4,11 +4,14 @@
 import os                          # Used for operating system related functionalities
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'  # Disable pygame welcome message
 import pygame                      # Pygame library for game development
+import math
 import random                      # Used for generating random numbers or choices
 import colors as clr               # Custom module for defining color constants
 import pygameClasses as pgc        # Custom module containing pygame classes
 
 #%% Define Classes %%#
+
+
 
 class BoardTile(pgc.pygamePushButton):
     """
@@ -27,7 +30,7 @@ class BoardTile(pgc.pygamePushButton):
         
     """
         
-    def __init__(self, x:int , y: int, width: int, height: int, backColor: tuple):
+    def __init__(self, x:int , y: int, width: int, height: int, backColor: tuple, index: int):
         """
         Button class represents a clickable button in Pygame.
 
@@ -40,6 +43,53 @@ class BoardTile(pgc.pygamePushButton):
             backColor (tuple)   : The text color in RGB format.
         """
         super().__init__(window, x, y, width, height, backColor, "", backColor)
+
+        self.piece = " "
+        self.index = index
+
+    def drawPiece(self, source):
+        self.piece = source
+        self.textColor = source.color
+        self.text = source.getImage()
+
+        self.draw()
+
+
+
+
+class BasePiece():
+    def __init__(self, color: tuple, name: str, index: int):
+
+        self.color = color
+        self.name = name
+        self.index = index
+        pass
+
+    def horizontal(self, distance: int):
+        self.index += distance
+        pass
+
+    
+    def vertical(self, distance: int):
+        self.index += distance * 8
+        pass
+
+    def getImage(self):
+
+        if self.name == "Blank":
+            return " "
+        elif self.name == "Pawn":
+            return "P"
+        elif self.name == "Rook":
+            return "R"
+        elif self.name == "Knight":
+            return "H"
+        elif self.name == "Bishop":
+            return "B"
+        elif self.name == "Queen":
+            return "Q"
+        elif self.name == "King":
+            return "K"
 
 
 
@@ -60,7 +110,7 @@ def createWindow() -> pygame.Surface:
     pygame.init()           # Initialize Pygame
 
     width = 8*60+10             # Set the screen width
-    height = 8*60+10+100            # Set the screen height
+    height = 8*60+10            # Set the screen height
 
     window = pygame.display.set_mode((width, height))       # Create the window
     pygame.display.set_caption("Minesweeper")          # Set the title
@@ -85,10 +135,48 @@ def generateTiles() -> list:
         for c in range(8):       # For each column
             xPos = c*(length+10)+10     # X position
             yPos = r*(length+10)+10     # Y position
-            button = BoardTile(xPos, yPos, length, length, clr.GRAY)
+            if (len(boxes) + r) % 2 == 0: 
+                button = BoardTile(xPos, yPos, length, length, clr.WHITE, r*8+c)
+            else:
+                button = BoardTile(xPos, yPos, length, length, clr.GRAY,  r*8+c)
             boxes.append(button)    # Add button to list
 
     return boxes
+
+
+def generatePieces() -> list:
+
+    pieces = []
+
+    # length = 50
+    r = 5
+    c = 2
+    # xPos = c*(length+10)+10     # X position
+    # yPos = r*(length+10)+10     # Y position
+    # button = BasicPiece(xPos, yPos, length, length, clr.RED)
+
+    for r, color in {0.8:clr.CYAN, 6.2:clr.MAGENTA}.items():
+        
+        pawnRow = round(r)
+
+        for c in range(8):
+            pieces.append(BasePiece(color, "Pawn", pawnRow*8+c))
+
+        if pawnRow < r:
+            r = math.ceil(r)
+        else:
+            r = math.floor(r)
+            
+        pieces.append(BasePiece(color, "Rook", r*8))
+        pieces.append(BasePiece(color, "Knight", r*8+1))
+        pieces.append(BasePiece(color, "Bishop", r*8+2))
+        pieces.append(BasePiece(color, "Queen", r*8+3))
+        pieces.append(BasePiece(color, "King", r*8+4))
+        pieces.append(BasePiece(color, "Bishop", r*8+5))
+        pieces.append(BasePiece(color, "Knight", r*8+6))
+        pieces.append(BasePiece(color, "Rook", r*8+7))
+
+    return pieces
 
 
 def updateScreen(tiles, pieces, sideBoards):
@@ -101,12 +189,14 @@ def updateScreen(tiles, pieces, sideBoards):
         restartButton (PushButton)  : Button for restarts
     """
 
-    window.fill(clr.WHITE)          # Clear the screen
-    for tile in tiles:       # For each button
-        tile.draw()                    # Re-add button
+    window.fill(clr.LIGHTGRAY)          # Clear the screen
+    for tile in tiles:              # For each button
+        tile.draw()                     # Re-add button
     for piece in pieces:
-        piece.draw()                  # Draw flag box
-    # sideBoards.draw()            # Draw restart button
+        tiles[piece.index].drawPiece(piece)
+    # for piece in pieces:
+    #     piece.draw()                    # Draw flag box
+    # sideBoards.draw()               # Draw side boards
     pygame.display.update()         # Update the display
 
 
@@ -114,7 +204,12 @@ def updateScreen(tiles, pieces, sideBoards):
 
 
 window = createWindow()
-tiles = generateTiles()
+tiles  = generateTiles()
+pieces = generatePieces()
+
+for piece in pieces:
+    tiles[piece.index].drawPiece(piece)
+
 
 
 
@@ -123,7 +218,23 @@ while True:                                             # Run until exitted
         if event.type == pygame.QUIT:                           # If quit event
             pygame.quit()                                           # Terminate pygame module
         if event.type == pygame.MOUSEBUTTONDOWN:                # If mouse was pressed
+            mousePos = pygame.mouse.get_pos()                      # Get mouse position
+            for tile in tiles:
+                if tile.is_clicked(mousePos):
+                    # print(tile.index)
+                    try:
+                        # print(tile.piece.index)
+                        tile.piece.vertical(-1)
+                        # print(tile.piece.index)
+                        pieceLoc = pieces.index(tile.piece)        # Location of piece in list
+                        
+                        tile.piece = None
+                    except:
+                        pass
+                    
+
+                    break
             pass
 
-    updateScreen(tiles, tiles, 0)
+    updateScreen(tiles, pieces, 0)
 
