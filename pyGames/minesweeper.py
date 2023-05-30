@@ -357,7 +357,6 @@ def generateButtons(size: int) -> list:
         for c in range(size):       # For each column
             xPos = c*(length+10)+10     # X position
             yPos = r*(length+10)+10     # Y position
-            # button = Button(xPos, yPos, length, length, clr.GRAY, str(r*size+c), clr.BLACK)
             button = Button(xPos, yPos, length, length, (r*size+c), clr.GRAY, clr.BLACK)
             boxes.append(button)    # Add button to list
 
