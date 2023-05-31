@@ -46,6 +46,10 @@ class BoardTile(pgc.pygamePushButton):
 
         self.piece = " "
         self.index = index
+        self.baseColor = backColor
+        self.selected = False
+        self.viable = False
+    
 
     def drawPiece(self, source):
         self.piece = source
@@ -58,6 +62,14 @@ class BoardTile(pgc.pygamePushButton):
         self.piece = ""
         self.text = " "
 
+    def chosen(self):
+        self.selected = not(self.selected)
+        if self.selected:
+            self.backColor = clr.BLUE
+        else:
+            self.backColor = self.baseColor
+
+    
 
 class BasePiece():
     def __init__(self, color: tuple, name: str, index: int):
@@ -212,7 +224,7 @@ pieces = generatePieces()
 for piece in pieces:
     tiles[piece.index].drawPiece(piece)
 
-
+chosenTile = None
 
 
 while True:                                             # Run until exitted
@@ -223,13 +235,16 @@ while True:                                             # Run until exitted
             mousePos = pygame.mouse.get_pos()                      # Get mouse position
             for tile in tiles:
                 if tile.is_clicked(mousePos):
-                    
-                    for piece in pieces:
-                        if piece.index == tile.index:
-                            piece.vertical(-1)
-                            tiles[piece.index].drawPiece(piece)
-                            tile.clear()
-                            break
+                    if tile.selected:
+                        for piece in pieces:
+                            if piece.index == tile.index:
+                                piece.vertical(-1)
+                                tiles[piece.index].drawPiece(piece)
+                                tile.clear()
+                                break
+                    else:
+                        pass
+                    tile.chosen()
                     break
             pass
 
