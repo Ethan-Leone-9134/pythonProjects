@@ -132,12 +132,14 @@ class PushButtonEx(QMainWindow):    # Creates figure window object
         name        : [Description]
     """
 
-    def __init__(self):         # Names the figure window as "self"
-        super().__init__()      # Gives figure window its properties
-        self.screen = QDesktopWidget().screenGeometry()    # Find screen dimensions
-        self.screen = [self.screen.width(), self.screen.height()]  # Window dimensions
-        self.setGeometry(0, 0, self.screen[0], self.screen[1])     # Set figure dimensions to screen size
-        self.setWindowTitle("Poker Clock")          # Create figure window name
+    def __init__(self):                                         # Names the figure window as "self"
+        super().__init__()                                          # Gives figure window its properties
+        self.screen = QDesktopWidget().screenGeometry()             # Find screen dimensions
+        self.winSize = [self.screen.width(), self.screen.height()]  # Window dimensions
+        self.setGeometry(
+            0, 0, self.winSize[0], self.winSize[1]
+        )                                                           # Set figure dimensions to screen size
+        self.setWindowTitle("Basic Window")                         # Create figure window name
         self.setWindowIcon(QIcon(r"C:\Users\zaper\Downloads\pokerIcon.jpg"))
 
 
