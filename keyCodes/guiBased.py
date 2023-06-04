@@ -205,14 +205,14 @@ class infoWindow(QMainWindow):  # Creates information window object
         savePin         : Save the user info to the json file
     """
 
-    def __init__(self, pin: str):  # Names the figure window as "self"
-        super().__init__()  # Gives figure window its properties
-        self.screen = QDesktopWidget().screenGeometry()  # Find screen dimensions
+    def __init__(self, pin: str):                               # Names the figure window as "self"
+        super().__init__()                                          # Gives figure window its properties
+        self.screen = QDesktopWidget().screenGeometry()             # Find screen dimensions
         self.winSize = [self.screen.width(), self.screen.height()]  # Window dimensions
         self.setGeometry(
             0, 0, self.winSize[0], self.winSize[1]
-        )  # Set figure dimensions to screen size
-        self.setWindowTitle("User Information")  # Create figure window name
+        )                                                           # Set figure dimensions to screen size
+        self.setWindowTitle("User Information")                     # Create figure window name
 
         self.userInfo = FI.readPin(pin)  # Get the user's info from their file
         self.createBoxes()  # Generate the informational boxes
