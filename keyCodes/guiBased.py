@@ -191,26 +191,28 @@ class primeWindow(QMainWindow):  # Creates primary window object
 class infoWindow(QMainWindow):  # Creates information window object
     """
     Class generates the information entering window
+
     Attributes:
         winSize (list)              : 1x2 list of w and h of window
         userInfo (dict)             : Dictionary containing the user info
         valueBoxes (list)           : List of input boxes
         mainLayout (QLayout)        : Information box area
         saveButton (QPushButton)    : Button to save and close the window
+        
     Methods:
         createBoxes     : Generate all informational boxes
         basicDataLabel  : Generate a label next to a text box
         savePin         : Save the user info to the json file
     """
 
-    def __init__(self, pin: str):  # Names the figure window as "self"
-        super().__init__()  # Gives figure window its properties
-        self.screen = QDesktopWidget().screenGeometry()  # Find screen dimensions
+    def __init__(self, pin: str):                               # Names the figure window as "self"
+        super().__init__()                                          # Gives figure window its properties
+        self.screen = QDesktopWidget().screenGeometry()             # Find screen dimensions
         self.winSize = [self.screen.width(), self.screen.height()]  # Window dimensions
         self.setGeometry(
             0, 0, self.winSize[0], self.winSize[1]
-        )  # Set figure dimensions to screen size
-        self.setWindowTitle("User Information")  # Create figure window name
+        )                                                           # Set figure dimensions to screen size
+        self.setWindowTitle("User Information")                     # Create figure window name
 
         self.userInfo = FI.readPin(pin)  # Get the user's info from their file
         self.createBoxes()  # Generate the informational boxes
@@ -285,10 +287,10 @@ class adminWindow(QMainWindow):  # Creates adminastrative window object
     """
     Class generates the primary pincode entering window
     Attributes:
-        winSize (list)      :
-        pinBox (QLabel)     :
-        letterInfo (QLabel) :
-        validCode (QLabel)  :
+        winSize (list)      : 1x2 list for the window size
+        titleBar (QLabel)     :
+        passWord (QLabel) :
+        searchBar (QLabel)  :
     Methods:
         onPassPress     : Handles password enter press
         basicDataLabel  : Generate a label next to a text box
