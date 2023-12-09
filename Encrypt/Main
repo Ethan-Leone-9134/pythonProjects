@@ -1,4 +1,17 @@
+"""
+File Name   :  Main.py
+Author      :  Ethan Leone
+Date        :  10/23/2022
+Description :  This script implements an encryption algorithm
+
+Usage:
+- Ensure that the required libraries are installed by running 'pip install _______'.
+- Update any custom modules.
+- Run the script to perform the desired tasks.
+"""
+
 import array
+import time
 
 # t#,# = switch indicated characters  (t3,2)
 # r = moves first character to the end  (r)
@@ -9,34 +22,61 @@ import array
 # k# - s but all letters (k4)
 
 
-def peudoRand(a, b, c, lim):
-    limDig = len(list(str(lim)))
-    a = a + 1
-    b = b + 1
-    c = c + 1
-    fir = ((a*2/7+4-b*4/2)/12*((a*4*b)**c) + 103)/(12*c)
-    sec = (c*14+48*b+83)/(b*a+3*b+18*c-25)/(a*b*c)
-    thi = (295+a*3*b-43*c+12*a)/((18*a)*(-4*c))
-    com = 10+a*b*c
+def peudoRand(a:int, b:int, c:int, lim):
+    """
+    Function custom seeded randomization function
+    Inputs:
+        a           (int) : Input 1
+        b           (int) : Input 2
+        c           (int) : Input 3
+        lim         (int) : Largest Possible output
+    Outputs:
+        com         (int) : Randomized Value
+    """
+    limDig = len((str(lim)))        ## Calculate number of digits in the limit
+    a += 1
+    b += 1
+    c += 1
+
+    # print(f'\n {limDig} and {lim} \n')
+
+    fir = ((a*2/7+4-b*2)/12*((a*4*b)**(1/c)) + 103)/(12*c)  % 10**12 + a
+    sec = (c*14+48*b+83)/(b*a+3*b+18*c-25)/(a*b*c)          % 10**12 + b
+    thi = (295+a*3*b-43*c+12*a)/((18*a)*(-4*c))             % 10**12 + c
+
+    com = 10 + a * b * c
     while com > lim:
-        c = c + a*b
-        com = (int(com)**2)*(fir * sec / thi)/(18+c*5)
-        com = int(list(str(com))[-limDig])
+        c += a*b + fir*sec/thi  % 10**6
+        com = (int(com)**(a/b))*(fir * sec / thi)/(18*lim+c*15)
+        com = int(list(f'{com:0.16f}')[-limDig])
     return com
 
 
 def shortCode(codeType):
-    codeType = codeType.replace(' ','')
-    codeName = codeType[0:5]
-    codeA = int(codeType[5])
-    codeB = int(codeType[6])
-    chars = int(codeType[7:len(codeType)])
+    """
+    Function converts a code into a full algorithm
+    Inputs:
+        codeType (str)     : Simple Code
+    Outputs:
+        final    (str)     : Full Algorithm
+    """
+    codeType = codeType.replace(' ','')     ## Remove spacing
+    codeName = codeType[0:5]                ## First 5 Letters
+    print(len(codeType))
+    # if len(codeType) < 11:
+    codeA = int(codeType[5])                ## First Number
+    codeB = int(codeType[6])                ## Second Number
+    chars = int(codeType[7:len(codeType)])  ## Remaining Numbers
+    # else:
+    #     codeA = int(codeType[5:7])                ## First Number
+    #     codeB = int(codeType[7:9])                ## Second Number
+    #     chars = int(codeType[9:len(codeType)])  ## Remaining Numbers
 
-    if 3 == 2:  # Print Variables
-        print(codeName)
-        print(codeA)
-        print(codeB)
-        print(chars)
+    # # Print Variables
+    # print(codeName)
+    # print(codeA)
+    # print(codeB)
+    # print(chars)
 
     if codeType[0:5] == 'alpha':
         count = (codeA*codeB)+12
@@ -49,32 +89,71 @@ def shortCode(codeType):
             elif pick == 1:
                 codeArray[x] = 'r-'
             elif pick == 2:
-                termA = (codeA * 295+49-codeB)*(x+1)
-                termB = (4*codeA + (x+1)*92 - codeB*27)
-                codeArray[x] = 't' + str((termA % chars)+1) + ',' + str((termB % chars)+1)
+                termA = (codeA * 67 + 14 - codeB) * (x + 1)
+                termB = (4 * codeA + (x + 1) * 76 - codeB * 42)
+                codeArray[x] = 't' + str((termA % chars) + 1) + ',' + str((termB % chars) + 1)
             elif pick == 3:
-                termA = (codeA * 295+49-codeB)*(x+1)
-                termB = (4*codeA + (x+1)*92 - codeB*27)
-                codeArray[x] = 's' + str((termA % chars)+1) + ',' + str((termB % chars)+1)
+                termA = (codeA * 31 + 63 - codeB) * (x + 1)
+                termB = (4 * codeA + (x + 1) * 18 - codeB * 11)
+                codeArray[x] = 's' + str((termA % chars) + 1) + ',' + str((termB % chars) + 1)
             elif pick == 4:
-                termA = (codeA * 295+49-codeB)*(x+1)
-                termB = (4*codeA + (x+1)*92 - codeB*27)
-                codeArray[x] = 's' + str((termA % chars)+1) + ',-' + str((termB % chars)+1)
+                termA = (codeA * 85 + 77 - codeB) * (x + 1)
+                termB = (4 * codeA + (x + 1) * 59 - codeB * 14)
+                codeArray[x] = 's' + str((termA % chars) + 1) + ',-' + str((termB % chars) + 1)
             elif pick == 5:
-                termA = (codeA * 295+49-codeB)*(x+1)
+                termA = (codeA * 96 + 84 - codeB) * (x + 1)
                 termB = peudoRand(codeA, codeB, x, 1)
-                codeArray[x] = 'd' + str((termA % chars)+1) + ',' + str(termB+1)
+                codeArray[x] = 'd' + str((termA % chars) + 1) + ',' + str(termB + 1)
+
             elif pick == 6:
                 codeArray[x] = 'k' + str(peudoRand(codeA, codeB, x, 25)+1)
             elif pick == 7:
                 codeArray[x] = 'k-' + str(peudoRand(codeA, codeB, x, 25)+1)
-        print(codeArray)
+        # print(codeArray)
         final = ';'.join(codeArray)
+
+    if codeType[0:5] == 'gamma':
+        # count = (codeA*codeB) + int(chars/2)
+        codeArray = ['']*count
+        pass
+
+    if codeType[0:5] == 'delta':
+        # count = (codeA*codeB) + int(chars/2)
+        codeArray = ['']*count
+        pass
+
+    if codeType[0:5] == 'theta':
+        # count = (codeA*codeB) + int(chars/2)
+        codeArray = ['']*count
+        pass
+
+    if codeType[0:5] == 'kappa':
+        # count = (codeA*codeB) + int(chars/2)
+        codeArray = ['']*count
+        pass
+
+    if codeType[0:5] == 'sigma':
+        count = (codeA + codeB) * chars
+        codeArray = ['']*count
+        pass
+
+    if codeType[0:5] == 'omega':
+        count = (codeA*codeB) + int(chars/2)
+        codeArray = ['']*count
+        pass
 
     return final
 
 
 def redirect(algor, direction):
+    """
+    Function if Direction = D, flip the encryption to decryption
+    Inputs:
+        algor     (str)     : Encryption Algorithm
+        direction (str)     : E or D to determine if flip
+    Outputs:
+        algor     (str)     : 
+    """
     if direction == 'E':
         direction = 'E'
     elif direction == 'D':
@@ -117,6 +196,16 @@ def redirect(algor, direction):
 
 
 def primary(wordIter, algor):
+    """
+    Function implements an encryption algorithm
+    Inputs:
+        wordIter (str)     : String to be modified
+        algor    (str)     : Encryption algorithm
+    Outputs:
+        wordIter (str)     : Modified string
+    """
+
+    # try:
     total = 1 + algor.count(';')
     splitDA = algor.split(';')
     wordIter = list(wordIter)
@@ -135,18 +224,18 @@ def primary(wordIter, algor):
 
         if repItem[0] == "t":  # Switch #1 with #2
             comp = (repItem.replace('t', '')).split(',')
-            tranA = comp[0]  # tranA is #1
-            tranB = comp[1]  # tranB is #2
+            tranA = int(comp[0]) % len(wordIter) - 1 # tranA is #1
+            tranB = int(comp[1]) % len(wordIter) - 1 # tranB is #2
             temp = list(wordIter)  # Set tMod to array of word letters
-            temp[int(tranA) - 1] = wordIter[int(tranB) - 1]
-            temp[int(tranB) - 1] = wordIter[int(tranA) - 1]
+            temp[(tranA)] = wordIter[(tranB)]
+            temp[(tranB)] = wordIter[(tranA)]
             wordIter = temp
 
         if repItem[0] == "s":  # Change character code of #1 by #2
             comp = (repItem.replace('s', '')).split(',')  # Format input
-            incA = int(comp[0]) - 1  # incA is the target
+            incA = int(comp[0]) % len(wordIter) - 1      # incA is the target
             incB = int(comp[1])  # incB is the change factor
-            incC = ord(wordIter[incA])  # incC is the character code of the target
+            incC = ord(wordIter[abs(incA)])  # incC is the character code of the target
             if (incC < 123) and (incC > 96):
                 incB = (incB % 26)  # Level out absurd values
                 newLetter = incC + incB  # Combine numbers
@@ -160,7 +249,7 @@ def primary(wordIter, algor):
 
         if repItem[0] == "d":  # Duplicate #1, #2 times
             comp = repItem.replace('d', '').split(',')
-            dupA = int(comp[0]) - 1  # dupA is target
+            dupA = int(comp[0]) % len(wordIter) - 1  # dupA is target
             dupB = int(comp[1])  # dupB is the change factor
             dupC = ord(wordIter[abs(dupA)])
             if (dupC < 123) and (dupC > 96):  # Prevents special characters such as ' ' from being duplicated
@@ -199,25 +288,20 @@ def primary(wordIter, algor):
         print(wordIter)
         """
     return wordIter
+    # except:
+    #     print("Algorithm is INVALID for this input")
+    #     return 'ERROR'
 
-
-def main1():
-    phrase = input("What is the phrase? ")
-    code = input("What is the algorithm? ")
-    direction = str.capitalize(input("Are you trying to encrypt(E) or decrypt(D)? "))
-    original = phrase
-    if ';' not in code:
-        code = shortCode(code)
-    algor = redirect(code, direction)
-    wordIter = primary(phrase, algor)
-    show = original + " becomes " + ''.join(wordIter)
-    print(show)
-
-
-def main2():
-    phrase = 'e tqqreb ypllxqjllllf tkii nyii lkkk qebb igsbjxe axv lc jxoz'
-    code = 'alpha 8452'
-    direction = 'D'
+def main(phrase, code, direction):
+    """
+    Function runs the custom functions to encrypt a given string
+    Inputs:
+        phrase (str)     : String to be altered
+        code    (str)    : Encryption Algoritm
+        direction (str)  : E or D
+    Outputs:
+        none
+    """
     original = phrase
     if ';' not in code:
         code = shortCode(code)
@@ -227,4 +311,48 @@ def main2():
     print(show)
 
 
+def main1():
+    phrase = input("What is the phrase? ")
+    code = input("What is the algorithm? ")
+    direction = str.capitalize(input("Are you trying to encrypt(E) or decrypt(D)? "))
+    main(phrase, code, direction)
+
+def main2():
+    phrase = 'Ttumf vve sqruv vvrugsfng ssrgjrra nal punatrq punenpgre va gur nytbevguz'
+    code = 'alpha 9426'
+    direction = 'D'
+    main(phrase, code, direction)
+
+def main3():
+    phrase = 'Ttumf vve sqruv vvrugsfng ssrgjrra nal punatrq punenpgre va gur nytbevguz'
+    code = 'alpha 9526'
+    direction = 'D'
+    main(phrase, code, direction)
+
+def main4():
+    phrase = 'Ttumf vve sqruv vvrugsfng ssrgjrra nal punatrq punenpgre va gur nytbevguz'
+    code = 'alpha 9486'
+    direction = 'D'
+    main(phrase, code, direction)
+
+
+
+main3()
+main2()
+# main4()
+
+main('Jerimiah Le', 'alpha 1118', 'E')
+
 main1()
+
+# print(' ')
+# shortCode('alpha 12345')
+# print(' ')
+# shortCode('alpha 123456')
+# print(' ')
+# shortCode('alpha 1234567')
+# print(' ')
+# shortCode('alpha 12345678')
+
+
+#%%%# End of File #%%%#

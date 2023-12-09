@@ -61,16 +61,19 @@ class ScrollBoxEx(QWidget):
         self.setWindowTitle("Chats Simulator")                         # Create figure window name
         # self.setWindowIcon(QIcon(r"C:\Users\zaper\Downloads\pokerIcon.jpg"))
 
-        self.button = QPushButton('Button', self)          # Generate button
-        self.button.setGeometry(100,100,200,100)
-        self.button.clicked.connect(self.initUI())
-
-        self.texts = texts
-
+        if isinstance(texts, chatLog):
+            self.texts = list(texts)[0]
+        else:
+            self.texts = texts
 
 
-        # self.initUI(texts)
 
+        # self.button = QPushButton('Button', self)          # Generate button
+        # self.button.setGeometry(100,100,200,100)
+        # self.button.clicked.connect(self.initUI())
+
+        self.initUI()
+    
 
     def initUI(self):
 
@@ -103,7 +106,7 @@ class ScrollBoxEx(QWidget):
                 label1 = QTextEdit('', self)
                 label2 = QTextEdit(string, self)
                 label2.setStyleSheet(boxStyle+'''QTextEdit{background-color: #EAA11B;}''')  # Null
-                label2.setStyleSheet(boxStyle+'''QTextEdit{background-color: #EE4B2B;}''')  # Safe
+                # label2.setStyleSheet(boxStyle+'''QTextEdit{background-color: #EE4B2B;}''')  # Safe
                 label2.setFixedWidth(width)
 
             else:
@@ -141,8 +144,6 @@ class ScrollBoxEx(QWidget):
                 }
             ''')
         
-        
-
 
 class PushButtonEx(QMainWindow):    # Creates figure window object
     """
@@ -194,10 +195,13 @@ def timeCheck(inp=""):
     print(f"{round(time.time() - ALPHA, 8)} -:- {inp}")
 
 
+
+
+
+from chatDatas import AlphaPred69 as textData
+from chatDatas import chatLog
+
 ALPHA = time.time()
-
-
-from chatDatas import ray as textData
 
 
 
