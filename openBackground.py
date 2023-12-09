@@ -75,15 +75,15 @@ chromePin = 2               # Which number is the chrome tab in your pins at the
 #%%%# Main Code #%%%#
 
 keyboard = Controller()                     # Create a keyboard controller
-windTap(str(chromePin))                        # Open chrome with windows shortcut
+windTap(str(chromePin))                     # Open chrome with windows shortcut
 time.sleep(0.5)
 ctrlTap("n")                                # Generate new chrome window
 print("--- Windows Made ---")
 time.sleep(0.5)
-webbrowser.get(chromeApp).open(urlMusic)       # Open music Link
+webbrowser.get(chromeApp).open(urlMusic)    # Open music Link
 print("--- Music Made ---")
 time.sleep(3) 
-webbrowser.get(chromeApp).open(urlVideo)       # Open Video Link
+webbrowser.get(chromeApp).open(urlVideo)    # Open Video Link
 print("--- Video Made ---")
 time.sleep(3)
 toggleKey('f')                              # Press and release for full screen
