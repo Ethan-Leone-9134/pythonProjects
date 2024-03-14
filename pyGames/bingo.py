@@ -1,7 +1,7 @@
 """
-File Name   :  bingo2.py
+File Name   :  bingo3.py
 Author      :  Ethan Leone
-Date        :  03/10/2024
+Date        :  03/11/2024
 Description :  This script generates a sample bingo board and dabs the positions as given
 
 Usage:
@@ -84,9 +84,9 @@ class crossText(Text):
 
 def box(wid, axis=1, star=0):
     if axis:
-        return [star, wid, wid, star, star]
+        return [star, star+wid, star+wid, star, star]
     else:
-        return [star, star, wid, wid, star]
+        return [star, star, star+wid, star+wid, star]
 
 def grid(wid, scale, axis=1, star=0):
     outer = []
@@ -114,11 +114,11 @@ def genFig():
     ax.set_title("Bingo Board")             # Set title
     ax.axis('equal')                        # Set equal axis WIDTH
 
-    ax.set_xticks(range(0,10+1))        # Set x ticks
-    ax.set_yticks(range(0,15+1))        # Set y ticks
+    ax.set_xticks(range(0,WIDTH*5+1))        # Set x ticks
+    ax.set_yticks(range(-HEIGHT*5+1,0))        # Set y ticks
 
-    ax.set_xlim(-0.01,10.01)        # Set x limit
-    ax.set_ylim(-0.02,15.02)        # Set y limit
+    ax.set_xlim(-0.01,WIDTH *5 + 0.01)        # Set x limit
+    ax.set_ylim(-HEIGHT*5-0.02, + 0.02)        # Set y limit
 
     ax.set_xticklabels([])      # Hide x labels
     ax.set_yticklabels([])      # Hide y labels
@@ -249,7 +249,7 @@ print(board)
 
 # Graph lines
 xpoints = np.array(grid(5,3,1,0) + grid(10,3,1,5))
-ypoints = np.array(grid(5,3,0,0) + grid(5,3,0,0))
+ypoints = np.array(grid(5,HEIGHT,0,-HEIGHT*5) + grid(5,HEIGHT,0,-HEIGHT*5))
 ax = genFig()
 # line, = ax.plot([], [], lw=2)
 ax.plot(xpoints, ypoints)       # Make plot
@@ -258,12 +258,12 @@ plt.pause(0.5)
 # Place numbers
 for c in range(WIDTH*5):
     for r in range(HEIGHT*5):
-        ax.text(c+0.2, HEIGHT*5-1-r+0.2, board[c][r], fontsize=13, color='blue' )
+        ax.text(c+0.2, -r-0.8, board[c][r], fontsize=13, color='blue' )
     plt.show()
     plt.pause(.1)
 
 # Generate crosshair 
-cHair = ax.add_artist(crossText(2,HEIGHT*5-1,"+", fontsize=28, color='blue'))
+cHair = ax.add_artist(crossText(2,-1,"+", fontsize=28, color='blue'))
 tOrigin = time.time()
 
 # Call numbers
@@ -276,14 +276,14 @@ while "end" not in called:                  # While game is active
         tars += findTargets(board, currBall)    # Find all targets to hit
         tars = optRoute(tars, cHair.posVec)     # Optimize the target list
         for targ in tars:                       # Set target rings
-            ax.text(targ[0],-targ[1]+0.25+HEIGHT*5-1, "⬤", fontsize=20, color='red',alpha=0.05)
+            ax.text(targ[0],-targ[1]+0.25-1, "⬤", fontsize=20, color='red',alpha=0.05)
 
     # Set desired position
     if tars != []:
-        cHair.set_desired([tars[0][0],HEIGHT*5-1-tars[0][1]] )# Set the desired position
+        cHair.set_desired([tars[0][0],-1-tars[0][1]] )# Set the desired position
         cHair.set_color("blue")
     else:
-        cHair.set_desired([(1*5-1)/2,HEIGHT*5-1])       # Move to reset
+        cHair.set_desired([(1*5-1)/2,-1])       # Move to reset
         cHair.set_color("green")
 
     # Change position
