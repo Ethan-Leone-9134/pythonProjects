@@ -1,135 +1,221 @@
 """
-File Name   :  bingo3.py
+File Name   :  bingo4.py
 Author      :  Ethan Leone
-Date        :  03/11/2024
-Description :  This script generates a sample bingo board and dabs the positions as given
+Date        :  03/14/2024
+Description :  This script generates a sample bingo board 
+               and dabs the positions as given
 
 Usage:
-- Ensure that the required libraries are installed by running 'pip install matplotlib numpy'.
-- Update any custom modules.
-- Run the script to perform the desired tasks.
+- Ensure that the required libraries are installed by running 'pip install pygame'.
+- Update custom module: pygameClasses, colors.
+- Run the script to play the game.
 """
 
-
-#%%%#   Import  Libraries   #%%%#
-import matplotlib.pyplot as plt
-from matplotlib.text import Text
-from matplotlib.animation import FuncAnimation
-from itertools import permutations
-import numpy as np
-import random
-import time 
-import math
-
-
-#%%%#   Define  Classes   #%%%#
+#%%%#   Import Statements  #%%%#
+import os                           # Used for operating system related functionalities
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'  # Disable pygame welcome message
+import pygame                       # Pygame library for game development
+import random                       # Used for generating random numbers or choices
+import colors as clr                # Custom module for defining color constants
+import pygameClasses as pgc         # Custom module containing pygame classes
+from itertools import permutations  # Function to find all possible permutations
+import numpy as np                  # Array library for arrays
+import math                         # Math library for most calculations past +-*/
+import time                         # Time Library to regulate the code relative to real-time
 
 
-class crossText(Text):
-    def __init__(self, currX, currY, text, fontsize=12, color='black', **kwargs):
-            super().__init__(currX, currY, text, fontsize=fontsize, color=color, **kwargs)
-            self.posVec = [currX,currY,currX,currY]
-            self.set_position((currX, currY))  # Set initial position
-            self.set_fontsize(fontsize)  # Set initial fontsize
-            self.set_color(color)  # Set initial color
-            
+#%%%#   Define Classes   #%%%#
 
-    def set_position(self, position):
-        self.set_x(position[0])
-        self.set_y(position[1])
-        
-        plt.show()
-        if (abs(self.posVec[2]-position[0])+abs(self.posVec[3]-position[1]) > 0.0005):
-            plt.pause(0.1)
-        self.posVec[0:2] = position
 
-    def set_desired(self, position):
-        self.posVec[2:4] = position
+class Button(pgc.pygamePushButton):
+    """
+    Class represents the primary "boxes" for the game
 
-    def set_fontsize(self, fontsize):
-        super().set_fontsize(fontsize)
+    Attributes:
+        rect (pygame.Rect)      : Object defining the position and size.
+        pos(list)               : Vector of relevant position values
+        backColor (tuple)       : The background color of the object in RGB format.
+        text (str)              : The text currently displayed on the box.
+        textColor (tuple)       : The color of the text in RGB format.
+        index (int)             : The index value of the object.
 
-    def set_color(self, color):
-        super().set_color(color)
+    Methods:
+        draw()                  : Draw the button on the Pygame window.
+        target()                : Handle adding targets.
+        move()                  : Increment position.
+        isFar()                 : Logical to detect distance from target position.
+        finish()                : Sequence to run when the game has ended.
+    """
+
+    def __init__(self, x:int , y: int, width: int, height: int, index: int, backColor: tuple, textColor: tuple, text=" "):
+        """
+        Button class represents a clickable button in Pygame.
+
+        Inputs:
+            x (int)             : The x-coordinate of the top-left corner of the button.
+            y (int)             : The y-coordinate of the top-left corner of the button.
+            width (int)         : The width of the button.
+            height (int)        : The height of the button.
+            index (int)         : The index of the button in the list
+            backColor (tuple)   : The text color in RGB format.
+            textColor (tuple)   : The background color in RGB format.
+        """
+        super().__init__(window, x/SCALE, y/SCALE, width/SCALE, height/SCALE, backColor, " ", textColor)
+        self.backColor = backColor
+        self.text = text
+        self.textColor = textColor
+        self.pos = [x/SCALE, y/SCALE, width/SCALE, height/SCALE, x/SCALE, y/SCALE]
+        self.index = index
+        # self.set_font_size(int(20/SCALE))
+        self.fnt = pygame.font.SysFont("Ariel", int(100/SCALE)) 
+        self.draw()
+
+
+
+    def target(self, type=0):
+        """
+        Handle flagging targets
+        Input: 
+            type (bool)     : 0 for flag  &  1 for pressed
+        """
+
+        self.flagged = type                 # Flip flagged variable
+        if self.flagged:                    # Is the box being flagged
+            self.backColor = clr.GREEN           # Update display
+        else:                               # Is the box being unflagged
+            self.backColor = clr.GOLD           # Update display
+        self.draw()
+
+
+    def finish(self):
+        """
+        Sequence to run when the game has terminated (tells if flags were right)
+        """
+
+        self.update()                           # Update the box
+
+        if self.flagged:                        # Is the box flagged
+            if self.underText == "M":               # If the box correctly flagged
+                self.textColor = clr.GREEN              # Set "F" to green
+            else:                                   # If the box falsely flagged
+                self.textColor = clr.RED                # Set "F" to red
+
 
     def move(self):
-        xSpeed = 0.2
-        ySpeed = 0.2
-        # Move x
-        if self.posVec[0] > self.posVec[2]:
-            self.posVec[0] -= xSpeed
-        elif self.posVec[0] < self.posVec[2]:
-            self.posVec[0] += xSpeed
-        else:
-            self.posVec[0] = self.posVec[2]
+        """
+        Sets position of the box closer to the desired value
+        """
 
-        # Move y
-        if self.posVec[1] > self.posVec[3]:
-            self.posVec[1] -= ySpeed
-        elif self.posVec[1] < self.posVec[3]:
-            self.posVec[1] += ySpeed
-        else:
-            self.posVec[1] = self.posVec[3]
+        # Define game speed
+        xSpeed = 6  /SCALE
+        ySpeed = 6  /SCALE
 
-        self.posVec = [round(val, 5) for val in self.posVec]
-        # Move cross hair
-        self.set_position((self.posVec[0],self.posVec[1]))
+        # Move x position
+        xDif = self.pos[4] - self.pos[0]
+        self.pos[0] += valueLim(xDif,xSpeed)/SCALE
+
+        # Move y position
+        yDif = self.pos[5] - self.pos[1]
+        self.pos[1] += valueLim(yDif,ySpeed)/SCALE
+
+        # Round position vector
+        self.pos = [round(val, 5) for val in self.pos]
+
+        # Move position of the box itself
+        self.rect.x = self.pos[0]
+        self.rect.y = self.pos[1]
+
+        Button((self.pos[0]-self.pos[2]/2)*SCALE, (self.pos[1]-self.pos[3]/2)*SCALE, self.pos[2]*2*SCALE, self.pos[3]*2*SCALE, 0, clr.GRAY, clr.GRAY)
+        
 
     def isFar(self):
-        return (abs(self.posVec[0]-self.posVec[2])+abs(self.posVec[1]-self.posVec[3]) > 0.005)
+        """
+        Logical to detect distance from target position.
+        """
+        return (abs(self.pos[0]-self.pos[4])+abs(self.pos[1]-self.pos[5]) > 5)
 
 
-#%%%#   Define  Graphical  Functions   #%%%#
+    def draw(self):
+        """
+        Draw the button on the Pygame window.
+        """
+        # Draw the button background
+        pygame.draw.rect(window, self.backColor, self.rect)
+        
+        # Render the text
+        text_surface = self.fnt.render(self.text, True, self.textColor)
+        
+        # Get the text surface rect
+        text_rect = text_surface.get_rect()
+        
+        # Center the text on the button
+        text_rect.center = self.rect.center
+        
+        # Blit the text onto the button
+        window.blit(text_surface, text_rect)
 
 
-def box(wid, axis=1, star=0):
-    if axis:
-        return [star, star+wid, star+wid, star, star]
-    else:
-        return [star, star, star+wid, star+wid, star]
 
-def grid(wid, scale, axis=1, star=0):
-    outer = []
-    for n in range(scale):
-        if (axis):
-            wid2 = wid
-        else: 
-            wid2 = wid*(n+1)
+#%%%#   Define   Visual  Initial   Functions   #%%%#
 
-        outer += box(wid2, axis, star)
-
-    return outer
-
-def genFig():
+def createWindow(size: int) -> pygame.Surface:
     """
-    Function genFig generates the figure window
+    Generate a pygame figure window
+
     Inputs:
-        none
-    Outputs:
-        ax (fig)     : The figure window generated by the function
+        size (int) : number of columns and rows in the game
+
+    Outputs: 
+        window (pygame display) : main window for the program
+    
+    """
+    
+    pygame.init()           # Initialize Pygame
+
+    width = 520             # Set the screen width
+    height = 600            # Set the screen height
+
+    window = pygame.display.set_mode((width, height))   # Create the window
+    pygame.display.set_caption("Bingo Player")          # Set the title
+
+    window.fill(clr.GRAY)       # Clear screen
+
+    # pygame.font.SysFont("Ariel", int(20/SCALE))
+
+    return window
+
+
+def genBoxes(board: list) -> list:
+    """
+    Create the boxes
+
+    Inputs:
+        board (array)   : Array of board positions
+    
+    Outputs: 
+        boxes (list)    : list of push buttons
     """
 
-    fig, ax = plt.subplots(figsize=(4,6))   # Initialize size
-    # line, = ax.plot([], [], lw=2)
-    ax.set_title("Bingo Board")             # Set title
-    ax.axis('equal')                        # Set equal axis WIDTH
+    boxes = []              # Initialize position list
+    length = 93             # Square side length
+    letDict = {0:"B", 1:"I", 2:"N", 3:"G", 4:"O"}
+    for cn, column in enumerate(board):       # For each row
+        # Letter Header
+        Letter = Button(100*cn + 50*math.floor(cn/5), 80, length, length, 0 , clr.WHITE, clr.INDIGO)
+        Letter.text = letDict[cn % 5]
+        Letter.draw()
+        boxes.append(Letter)
+        # Number boxes
+        for rn, point in enumerate(column):   # For each column
+            button = Button(point[0], point[1], length, length, (0), clr.LIGHTGRAY, clr.BLACK)
+            button.text = str(point[2])
+            button.draw()
+            boxes.append(button)    # Add button to list
 
-    ax.set_xticks(range(0,WIDTH*5+1))        # Set x ticks
-    ax.set_yticks(range(-HEIGHT*5+1,0))        # Set y ticks
-
-    ax.set_xlim(-0.01,WIDTH *5 + 0.01)        # Set x limit
-    ax.set_ylim(-HEIGHT*5-0.02, + 0.02)        # Set y limit
-
-    ax.set_xticklabels([])      # Hide x labels
-    ax.set_yticklabels([])      # Hide y labels
-
-    plt.ion()
-    plt.grid(which='major', axis='both', linestyle='-',linewidth=1)
-
-    return ax
+    return boxes
 
 
-#%%%#   Define  Temp  Functions   #%%%#
+#%%%#   Define      Temporary      Functions   #%%%#
 
 
 def randVec(min:int,max:int,len:int,count:int=1) -> list:
@@ -152,26 +238,46 @@ def randVec(min:int,max:int,len:int,count:int=1) -> list:
     return vect                             # Output list
 
 
-#%%%#   Define  Scanning  Functions   #%%%#
+#%%%#   Define   Machine   Input   Functions   #%%%#
 
 
-def getIndex(aray: list, value: int) -> list:
+def readBoard():
     """
-    Function searches a list for a specific value
+    Function reads the board data
+
     Inputs:
-        aray  (1-D List)    : List to be searched through
-        value (int)         : Value to be detected
+        none
     Outputs:
-        indexes (list)      : List of indexes where a match was found
+        board (list)     : List of board data
     """
 
-    # Found index list
-    indexes = [index for index, element in enumerate(aray) if element == value]
-    # Output vector
-    return indexes
+    # Generate boards
+    board = []
+    for n in range(WIDTH*5):        # For each column
+        array = []
+        vect = [randVec(1 + HEIGHT*5*(n % 5), HEIGHT*5 + HEIGHT*5*(n % 5), 5, HEIGHT)]      # Values of the column
+        for cn, column in enumerate(vect):                  # For each column
+            newCol = []                                         # New column
+            for rn, ball in enumerate(column):                  # For each row in the column
+                newCol += [[n*100 + 50*math.floor(n/5), 200 + rn*100 + 100*math.floor(rn/5), ball]]     # Data for the point
+            array += [newCol]                                   # Add point to the column
+        board += array                                      # Add column to the board
+    return board                                            # Output the column
 
 
 def readCalls(timeOriginal:float, called:list):
+    """
+    Function reads the called ball values
+
+    Inputs:
+        timeOriginal (float)    : Time at the start of the game loop
+        called (list)           : List of called balls
+    Outputs:
+        called (list)           : List of called balls
+        ranNum (int)            : Selected ball value
+    """
+
+
     # Find calls
     ranNum = 0
     if len(called) == 73:
@@ -187,118 +293,276 @@ def readCalls(timeOriginal:float, called:list):
     return called, ranNum
 
 
-def findTargets(board, currBall):
+def checkEnd():
+    """
+    Function terminates the pygame window.
 
-    targets = []
-    for n in range(WIDTH):
-        col = math.floor((currBall-1)/15)+(5*n)   # column Number
-        if currBall in board[col]:                # If there is a match
-            spotz = getIndex(board[col],currBall)     # Find all indexes
-            if (n+1) % 2 == 0:
-                spotz.reverse()
-            for spot in (spotz):                    # Repeat for each found position
-                targets += [[col, spot, currBall]]
+    Inputs:
+        none
+    Outputs:
+        none
+    """
 
-    # print(targets)
-    return targets
+    for event in pygame.event.get():            # Check event type
+        if event.type == pygame.QUIT:               # If quit event
+            pygame.quit()                                # Terminate pygame module
+            exit()                                       # Close the window
 
 
-def optRoute(targets, currPos):
-    permz = (list(permutations(targets, len(targets))))
-    distz = []          # Average distances
-    for thisPerm in (permz):
-        perm = [[currPos[0]] + [(float(currPos[1])-HEIGHT*5)] + [0]] + list(thisPerm)
-        dist = []
-        for pointNum in range(len(perm)-1):
+#%%%#   Define       Scanning      Functions   #%%%#
+
+
+def getIndex(aray: list, value: int) -> list:
+    """
+    Function searches a list for a specific value
+    Inputs:
+        aray  (1-D List)    : List to be searched through
+        value (int)         : Value to be detected
+    Outputs:
+        indexes (list)      : List of indexes where a match was found
+    """
+
+    # Found index list
+    indexes = [index for index, element in enumerate(aray) if element == value]
+
+
+    # if indexes == []:
+    #     indexes = min(range(len(aray)), key=lambda i: abs(aray[i] - value))
+    #     pass
+    # Output vector
+    return indexes
+
+
+def getButInd(aray: list, value: int) -> list:
+    """
+    Function searches a board for a specific target
+    Inputs:
+        aray  (1-D List)    : Board to be searched through
+        value (int)         : Target to be detected
+    Outputs:
+        ind (int)           : Index where a match was found
+    """
+    targDex = getIndex(aray[value[3]],value[0:3])   # Find the target
+    ind = ( 1 + 16*value[3] + targDex[0] )          # Get the index in the board
+    return ind                                      # Output value
+
+
+def findTargets(board: list, currBall: int):
+    """
+    Function scans the board for all instances of the searched value
+
+    Inputs:
+        board (list)        : List of board data
+        currBall (int)      : Selected ball value
+    Outputs:
+        targets (list)      : List of targeted board values
+    """
+
+    targets = []                            # Initialize list    [xPos, yPos, ballNumber, columnNumber]
+    for cn in range(WIDTH):                     # For each column
+        col = math.floor((currBall-1)/15)+(5*cn)    # column Number
+        for rn, place in enumerate(board[col]):     # Board column
+            if currBall in place:                       # If there is a match
+                targets += [[place[0],place[1], currBall, col]] # Add target to list
+
+        
+    return targets                          # Output list
+
+
+def optRoute(targets: list, currPos: list) -> list:
+    """
+    Function finds the most efficient route based on the targets given and current position
+    Inputs:
+        targets (list)      : List of UNoptimized target positions
+        currPos (list)      : Current position of
+    Outputs:    
+        targets (list)      : List of OPtimized target positions
+    """
+
+    permz = (list(permutations(targets, len(targets))))     # All possible routes
+    distz = []                              # Average distances vector
+    for thisPerm in (permz):                # For each permutation
+        perm = [[currPos[0]*SCALE] + [currPos[1]*SCALE] + [0]] + list(thisPerm)
+        dist = []                               # Distance vector for this route
+        for pointNum in range(len(perm)-1):     # For each path
             distSq = ((perm[pointNum][0] - perm[pointNum+1][0])**2 + (perm[pointNum][1] - perm[pointNum+1][1])**2 )
             dist.append(math.sqrt( distSq ) )
-            # dist += abs(perm[pointNum][0] - perm[pointNum+1][0]) + abs(perm[pointNum][1] - perm[pointNum+1][1])
-        
+            
         try:
-            distz.append(sum(dist) / len(dist))
-        except ZeroDivisionError:
-            distz.append(0)  # Handle case where dist is an empty list
-        # print(f"The list {dist} has sum {sum(dist)} and len {len(dist)}")
+            distz.append(sum(dist))
+        except ZeroDivisionError:               # Handle case where dist is an empty list
+            distz.append(0)      
 
-    minIndex = distz.index(min(distz))
-    # print("")
-    # # print(f"Distances vector {distz}")
-    # print(f"For a minimum of {min(distz)}, Index {minIndex} gives the vector {[currPos[0:2] + [0]] + list(permz[minIndex])}")
-    # print("")
-    targets = list(permz[minIndex])
-    print(targets)
-    return targets
-
-#%%%# 
+    minIndex = distz.index(min(distz))      # Find the index of the permz with the shortest distance
+    targets = list(permz[minIndex])         # Find the associated route
+    return targets                          # Output route
 
 
+def findSurrounding(board, cross):
+
+    cX = cross.pos[0]*SCALE
+    cY = cross.pos[1]*SCALE
+
+    topLineX = []
+    for cols in board:
+        topLineX += [cols[0][0]]
+    
+    targCol = findClosestIndex(topLineX, cX)
+
+    mainColY = []
+    for rows in board[targCol]:
+        mainColY += [rows[1]]
+
+    targRow = findClosestIndex(mainColY, cY) 
+
+    buttonIndexes = []
+    for rn in range(targRow-1, valueLim(targRow+2,HEIGHT*5)):
+        for cn in range(targCol-1, valueLim(targCol+2,WIDTH*5)):
+
+            buttonIndexes += [1 + 16*cn + rn]
+
+    return buttonIndexes
 
 
-
-#%%%#   Start  Main  Code   #%%%#
-
-# Set size
-WIDTH = 2
-HEIGHT = 3
-
-# Generate boards
-board = []
-for n in range(WIDTH*5):
-    board += [randVec(1 + HEIGHT*5*(n % 5), HEIGHT*5 + HEIGHT*5*(n % 5), 5, HEIGHT)]
-print(board)
-
-# Graph lines
-xpoints = np.array(grid(5,3,1,0) + grid(10,3,1,5))
-ypoints = np.array(grid(5,HEIGHT,0,-HEIGHT*5) + grid(5,HEIGHT,0,-HEIGHT*5))
-ax = genFig()
-# line, = ax.plot([], [], lw=2)
-ax.plot(xpoints, ypoints)       # Make plot
-plt.pause(0.5)
-
-# Place numbers
-for c in range(WIDTH*5):
-    for r in range(HEIGHT*5):
-        ax.text(c+0.2, -r-0.8, board[c][r], fontsize=13, color='blue' )
-    plt.show()
-    plt.pause(.1)
-
-# Generate crosshair 
-cHair = ax.add_artist(crossText(2,-1,"+", fontsize=28, color='blue'))
-tOrigin = time.time()
-
-# Call numbers
-called = [0]                  # List of called numbers
-tars = []
-while "end" not in called:                  # While game is active
-    # Detect routes
-    [called, currBall] = readCalls(tOrigin, called) # Detect ball number inputs
-    if currBall != 0:                       # If there is an actual ball to detect
-        tars += findTargets(board, currBall)    # Find all targets to hit
-        tars = optRoute(tars, cHair.posVec)     # Optimize the target list
-        for targ in tars:                       # Set target rings
-            ax.text(targ[0],-targ[1]+0.25-1, "⬤", fontsize=20, color='red',alpha=0.05)
-
-    # Set desired position
-    if tars != []:
-        cHair.set_desired([tars[0][0],-1-tars[0][1]] )# Set the desired position
-        cHair.set_color("blue")
-    else:
-        cHair.set_desired([(1*5-1)/2,-1])       # Move to reset
-        cHair.set_color("green")
-
-    # Change position
-    if tars != []:                  # If there are targets to hit
-        if cHair.isFar():              # If the marker is not over a target
-            cHair.move()                            # Move the marker
-        else:
-            plt.pause(0.5)                          # Pause for the dabbing
-            ax.text(cHair.posVec[0],cHair.posVec[1]+0.25, "⬤", fontsize=20, color='green',alpha=0.25)
-            plt.show()                              # Show the plot
-            print(f"Ball call {tars[0][2]} pressed at time: {round(time.time() - tOrigin,2)} / {15*(len(called)-1)} [s]")
-            tars.remove(tars[0])
-    cHair.move()
-    time.sleep(0.05)
+def findClosestIndex(lst, target):
+    return min(range(len(lst)), key=lambda i: abs(lst[i] - target))
     
 
-plt.show(block=True)
-#%%%#   End  of  Script  File   #%%%#
+def pickEnder(board, cross):
+
+
+    middleL = math.floor(WIDTH*5/2)
+    middleR = math.ceil(WIDTH*5/2)
+    middle = (board[middleR][0][0] +  board[middleL][0][0])/2
+    top = board[0][0][1] + 100
+    bot = board[0][HEIGHT*5-1][1]
+    place1 = [middle, top, 0, 0]
+    place2 = [middle, bot, 0, 0]
+
+
+    optimal = optRoute([place1, place2], cross.pos)
+    if optimal[0][1] == place1[1]:
+        closest = [round(middle/SCALE,3), round(top/SCALE,3)]
+    else:
+        closest = [round(middle/SCALE,3), round(bot/SCALE,3)]
+
+    return closest
+
+
+
+#%%%#   Define     All    Other    Functions   #%%%#
+
+def valueLim(num, limit):
+    # Restricts a number's absolute value if needed
+    # (Shrinks if goes over positive limit)
+    # (Grows if under negative limit)
+    # Inputs  : num - original number
+    #           limit - largest possible absolute value (smallest if negative)
+    # Outputs : answer - restricted number
+    answer = num
+
+    if limit > 0:
+        if abs(num) > limit: # If |num| exceeds limit
+            if num < 0: # If num is negative
+                answer = -limit
+            elif num > 0: # If num is positive
+                answer = limit
+    elif limit < 0:
+        if abs(num) < abs(limit): # If |num| exceeds limit
+            if num < 0: # If num is negative
+                answer = limit
+            elif num > 0: # If num is positive
+                answer = -limit
+    return answer
+
+
+#%%%#   Start  Main  Code #%%%#
+###############################
+
+
+WIDTH = 3                   # Boards width
+HEIGHT = 3                  # Boards height
+SCALE = 3.5                 # Game Scale
+           
+width = int(WIDTH*600/SCALE)                    # Set the screen width
+height = int((HEIGHT*700+200)/SCALE)            # Set the screen height
+
+board = readBoard()                             # Get input for the game board
+window = createWindow([width,height])           # Generate pygame window
+buttonsList = genBoxes(board)                   # Generate piece places
+
+cHair = Button(225,225, 50,50,                  # Generate crosshair 
+            0,clr.WHITE, clr.BLUE, "+")
+timeBox = Button(100,2000,WIDTH*500,100,        # Generate info box on the bottom
+            0, clr.WHITE,clr.BLUE, "TIME: 0 [s]")
+
+
+# Initialize variables
+called = [0]                # List of called numbers
+tars = []                   # List of game targets
+lineBoard = [item for sublist in board for item in sublist]     # 1-D Box vector
+tOrigin = time.time()       # Time at start of loop
+
+try:
+
+    while "end" not in called:                  # While game is active
+        alpha = time.time()
+        # Detect routes
+        [called, currBall] = readCalls(tOrigin, called) # Detect ball number inputs
+        if currBall != 0:                       # If there is an actual ball to detect
+            tars += findTargets(board, currBall)    # Find all targets to hit
+            for targ in tars:                       # Set target color
+                buttonsList[getButInd(board,targ)].target()   
+            tars = optRoute(tars, cHair.pos)        # Optimize the target list
+
+        # Set desired position
+        if tars != []:
+            cHair.pos[4:6] = ([tars[0][0]/SCALE+5,tars[0][1]/SCALE+5] )# Set the desired position
+            cHair.textColor = clr.BLUE
+        else:
+            cHair.pos[4:6] = pickEnder(board,cHair)
+            # print(cHair.pos)
+            cHair.textColor = clr.GREEN
+
+        # Change position
+        if tars != []:                  # If there are targets to hit
+            if cHair.isFar():              # If the marker is not over a target
+                cHair.move()                            # Move the marker
+            else:
+                pygame.time.delay(500)                  # Pause for the dabbing
+                buttonsList[getButInd(board,tars[0])].target(1)   
+                # print(f"Ball call {tars[0][2]} pressed at time: {round(time.time() - tOrigin,2)} / {15*(len(called)-1)} [s]")
+                tars.remove(tars[0])
+        cHair.move()
+        tPast = time.time()-tOrigin
+        timeBox.text = f"Passed: {tPast: 0.1f} [s]  |  To-Ball: {(15*(len(called)-1)-tPast): 0.1f} [s]  |  {called[-1]}"
+        timeBox.draw()
+
+        beta = time.time()
+        # Display
+        # window.fill(clr.GRAY)       # Clear screen
+        # for butt in buttonsList:    # For each box
+        #     butt.draw()                 # Show box
+        for poses in findSurrounding(board, cHair):
+            # print(poses)
+            buttonsList[poses].draw()
+        cHair.draw()                # Crosshair box
+        pygame.display.flip()       # Update screen
+        # clock = pygame.time.Clock() # 
+
+        
+        while (time.time() - alpha) < (1/50):
+            checkEnd()                  # Detect end of game
+        gamma = time.time()
+        # print(f"Time to plot {1000*(gamma-alpha): 7.3f} [ms]   &   Time to calculate {1000*(beta-alpha): 5.2f} [ms]")
+        # print(f"Time to plot {1000*(gamma-alpha)-20: 7.3f} [ms]")
+        # End of main loop
+
+
+    while True:                 # Run until exitted
+        checkEnd()                  # Detect end of game
+
+except KeyboardInterrupt:
+    print("--- Keyboard Interrupt Occured ---")
+
+#%%%#   End  of  Script  File  #%%%#
