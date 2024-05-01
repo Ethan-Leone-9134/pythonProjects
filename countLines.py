@@ -38,7 +38,7 @@ def count_comment_and_blank_lines(file_path):
 
 
 # Example usage
-input_file = r'C:\Users\zaper\Github\pythonProjects-1\pyGames\bingo4.py'
+input_file = r'C:\Users\zaper\Github\pythonProjects\pyGames\bingo.py'
 all_lines, comment_lines, blank_lines, docstring_lines = count_comment_and_blank_lines(input_file)
 
 print("All lines:", all_lines)
